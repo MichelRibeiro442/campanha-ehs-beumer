@@ -174,16 +174,21 @@
   .tools-btn:hover{background:rgba(0,159,227,0.22); border-color:var(--blue-light); transform:translateY(-1px);}
   .tools-btn svg{flex:none;}
   .tools-btn-soon{
-    background:rgba(244,190,44,0.12); border-color:rgba(244,190,44,0.4); color:var(--gold);
+    position:fixed; top:20px; right:20px; z-index:46;
+    background:var(--navy); border-color:rgba(244,190,44,0.5); color:var(--gold);
+    box-shadow:0 10px 30px rgba(0,0,0,0.45);
     animation:soonPulse 2.4s ease-in-out infinite;
   }
-  .tools-btn-soon:hover{background:rgba(244,190,44,0.24); border-color:var(--gold);}
+  .tools-btn-soon:hover{background:rgba(244,190,44,0.18); border-color:var(--gold); transform:translateY(-1px) scale(1.03);}
   @keyframes soonPulse{
-    0%,100%{box-shadow:0 0 0 rgba(244,190,44,0);}
-    50%{box-shadow:0 0 14px rgba(244,190,44,0.35);}
+    0%,100%{box-shadow:0 10px 30px rgba(0,0,0,0.45), 0 0 0 rgba(244,190,44,0);}
+    50%{box-shadow:0 10px 30px rgba(0,0,0,0.45), 0 0 16px rgba(244,190,44,0.4);}
   }
   @media (prefers-reduced-motion:reduce){
     .tools-btn-soon{animation:none;}
+  }
+  @media (max-width:720px){
+    .tools-btn-soon{top:auto; bottom:88px; right:14px; padding:10px 16px; font-size:12px;}
   }
   .ros-count-badge{
     display:inline-flex; align-items:center; justify-content:center;
@@ -653,6 +658,14 @@
     </div>
   </div>
 </div>
+
+<a class="tools-btn tools-btn-soon" href="./em-breve.html">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <path d="M12 6v6l4 2"></path>
+  </svg>
+  Em breve
+</a>
 <div class="wrap">
 
   <header>
@@ -693,13 +706,6 @@
       </svg>
       Painel ROS
       <span class="ros-count-badge" id="rosCountBadge" style="display:none;"></span>
-    </a>
-    <a class="tools-btn tools-btn-soon" href="./em-breve.html">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M12 6v6l4 2"></path>
-      </svg>
-      Em breve
     </a>
     <a class="tools-btn" href="https://heylink.me/FerramentasHSE/" target="_blank" rel="noopener noreferrer">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
