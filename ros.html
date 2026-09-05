@@ -68,6 +68,7 @@
   /* ---------- Filtros ---------- */
   .tabs{display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:30px; flex-wrap:wrap;}
   .tab{
+    display:inline-flex; align-items:center; justify-content:center;
     font-family:'Oswald',sans-serif; font-size:14px; font-weight:500; letter-spacing:0.5px;
     padding:9px 22px; border-radius:999px; cursor:pointer; user-select:none;
     border:1px solid var(--line); color:var(--muted);
@@ -77,14 +78,14 @@
   .tab:hover{color:var(--ink);}
   .tab.active{background:var(--blue); color:#031A22; border-color:var(--blue); box-shadow:0 6px 18px rgba(0,159,227,0.35);}
   .tab-badge{
-    display:inline-flex; align-items:center; justify-content:center;
-    min-width:20px; height:20px; padding:0 6px; border-radius:999px;
-    font-family:'Inter',sans-serif; font-size:11px; font-weight:800; line-height:1;
-    margin-left:7px; vertical-align:middle;
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:700;
+    margin-left:8px; color:inherit; opacity:0.85;
   }
-  .tab-badge-aberto{background:#EF4444; color:#fff;}
-  .tab-badge-andamento{background:var(--gold); color:#3A2C05;}
-  .tab-badge-concluido{background:#22C55E; color:#052E14;}
+  .tab-badge-dot{width:6px; height:6px; border-radius:50%; flex:none;}
+  .tab-badge-dot.aberto{background:#EF4444;}
+  .tab-badge-dot.andamento{background:var(--gold);}
+  .tab-badge-dot.concluido{background:#22C55E;}
 
   /* ---------- Cards de ROS ---------- */
   .ros-grid{
@@ -148,6 +149,64 @@
   .empty-state{
     text-align:center; padding:60px 20px; color:var(--muted);
     border:1px dashed var(--line); border-radius:14px; font-size:14px;
+  }
+
+  /* ---------- Barra de busca / Meus ROS / alternar visualização ---------- */
+  .ros-toolbar{display:flex; align-items:center; gap:10px; margin-bottom:22px; flex-wrap:wrap;}
+  .ros-search-box{
+    flex:1; min-width:200px; display:flex; align-items:center; gap:8px;
+    background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:999px;
+    padding:9px 16px; color:var(--muted);
+  }
+  .ros-search-box svg{flex:none;}
+  .ros-search-box input{
+    flex:1; min-width:0; background:none; border:none; outline:none; color:var(--ink);
+    font-family:'Inter',sans-serif; font-size:13.5px;
+  }
+  .ros-search-box input::placeholder{color:var(--muted);}
+  .ros-meus-btn{
+    display:inline-flex; align-items:center; gap:7px; flex:none;
+    padding:9px 16px; border-radius:999px; border:1px solid var(--line);
+    background:rgba(255,255,255,0.03); color:var(--muted); cursor:pointer;
+    font-family:'Oswald',sans-serif; font-size:13px; font-weight:500; letter-spacing:0.3px;
+    transition:background .2s ease, color .2s ease, border-color .2s ease;
+    white-space:nowrap;
+  }
+  .ros-meus-btn:hover{color:var(--ink);}
+  .ros-meus-btn.active{background:var(--blue); color:#031A22; border-color:var(--blue);}
+  .ros-view-toggle{display:flex; flex:none; border:1px solid var(--line); border-radius:999px; overflow:hidden;}
+  .ros-view-btn{
+    display:flex; align-items:center; justify-content:center; width:38px; height:37px;
+    background:rgba(255,255,255,0.03); color:var(--muted); border:none; cursor:pointer;
+    transition:background .2s ease, color .2s ease;
+  }
+  .ros-view-btn:hover{color:var(--ink);}
+  .ros-view-btn.active{background:var(--blue); color:#031A22;}
+
+  /* ---------- Visualização em lista compacta ---------- */
+  .ros-list{display:flex; flex-direction:column; gap:8px; margin-bottom:20px;}
+  .ros-list-row{
+    display:grid; grid-template-columns:112px 1fr 1.4fr 150px 130px;
+    gap:14px; align-items:center;
+    background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    border:1px solid var(--line); border-left:4px solid var(--line); border-radius:10px;
+    padding:12px 16px; cursor:pointer;
+    transition:border-color .2s ease;
+  }
+  .ros-list-row:hover{border-color:rgba(0,159,227,0.4);}
+  .ros-list-row.risk-alto{border-left-color:#EF4444;}
+  .ros-list-row.risk-medio{border-left-color:var(--gold);}
+  .ros-list-row.risk-baixo{border-left-color:#3E7D93;}
+  .ros-list-cell{font-size:12.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ros-list-cell.muted{color:var(--muted); font-size:11.5px;}
+  .ros-list-cell .ros-status{font-size:10px; padding:2px 8px;}
+  @media (max-width: 760px){
+    .ros-list-row{grid-template-columns:1fr; gap:5px;}
+    .ros-list-cell{white-space:normal;}
+  }
+
+  .ros-resolved-tag{
+    display:inline-block; font-size:11px; font-weight:700; color:#86EFAC; margin-top:2px;
   }
 
   .footer-credit{
@@ -264,10 +323,44 @@
   </header>
 
   <div class="tabs">
-    <div class="tab active" data-filter="abertos">Abertos <span class="tab-badge tab-badge-aberto" id="countAbertos">0</span></div>
-    <div class="tab" data-filter="andamento">Em andamento <span class="tab-badge tab-badge-andamento" id="countAndamento">0</span></div>
-    <div class="tab" data-filter="concluidos">Concluídos <span class="tab-badge tab-badge-concluido" id="countConcluidos">0</span></div>
+    <div class="tab active" data-filter="abertos">Abertos <span class="tab-badge"><span class="tab-badge-dot aberto"></span><span id="countAbertos">0</span></span></div>
+    <div class="tab" data-filter="andamento">Em andamento <span class="tab-badge"><span class="tab-badge-dot andamento"></span><span id="countAndamento">0</span></span></div>
+    <div class="tab" data-filter="concluidos">Concluídos <span class="tab-badge"><span class="tab-badge-dot concluido"></span><span id="countConcluidos">0</span></span></div>
     <div class="tab" data-filter="todos">Todos</div>
+  </div>
+
+  <div class="ros-toolbar">
+    <div class="ros-search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="M21 21l-4.3-4.3"></path>
+      </svg>
+      <input type="text" id="rosSearchInput" placeholder="Buscar por local, descrição, quem abriu...">
+    </div>
+    <button type="button" class="ros-meus-btn" id="rosMeusBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <span id="rosMeusLabel">Meus ROS</span>
+    </button>
+    <div class="ros-view-toggle">
+      <button type="button" class="ros-view-btn active" id="rosViewCardsBtn" title="Ver em cards">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+        </svg>
+      </button>
+      <button type="button" class="ros-view-btn" id="rosViewListBtn" title="Ver em lista">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16"></path>
+          <path d="M4 12h16"></path>
+          <path d="M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div id="rosGrid" class="ros-grid"></div>
@@ -319,6 +412,9 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVB
 let allRos = [];
 let allHistoricoRos = [];
 let currentFilter = 'abertos';
+let searchQuery = '';
+let meuNomeFilter = localStorage.getItem('rosMeuNome') || '';
+let viewMode = localStorage.getItem('rosViewMode') || 'cards';
 
 function statusClass(status){
   const s = (status || '').trim().toLowerCase();
@@ -418,6 +514,20 @@ function matchesFilter(item, filter){
   return true;
 }
 
+function matchesSearch(item, query){
+  if(!query) return true;
+  const q = query.trim().toLowerCase();
+  if(!q) return true;
+  const haystack = [item.local, item.descricao, item.abertoPor, item.responsavelPlano]
+    .map(v => (v || '').toLowerCase()).join(' ');
+  return haystack.includes(q);
+}
+
+function matchesMeuNome(item, nome){
+  if(!nome) return true;
+  return (item.abertoPor || '').trim().toLowerCase().includes(nome.trim().toLowerCase());
+}
+
 function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str == null ? '' : String(str);
@@ -444,6 +554,19 @@ function historyHtmlFor(item){
   }).join('') + '</div>';
 }
 
+// Data em que o ROS entrou em status "Concluído" pela última vez, usada pra
+// destacar "Resolvido em ..." direto no card, sem precisar abrir o histórico.
+function dataConclusaoFor(item){
+  if(!isConcluido(item.status)) return null;
+  const entries = allHistoricoRos
+    .filter(h => h.key === item.key && isConcluido(h.statusNovo))
+    .slice()
+    .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  if(entries.length === 0) return null;
+  const d = new Date(entries[0].timestamp);
+  return isNaN(d.getTime()) ? null : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
 function updateTabCounts(){
   const countEl = (id) => document.getElementById(id);
   const abertos = allRos.filter(item => matchesFilter(item, 'abertos')).length;
@@ -458,18 +581,37 @@ function renderRos(){
   updateTabCounts();
   const grid = document.getElementById('rosGrid');
   const empty = document.getElementById('emptyState');
-  const filtered = sortRosByPriority(allRos.filter(item => matchesFilter(item, currentFilter)));
+  const filtered = sortRosByPriority(
+    allRos
+      .filter(item => matchesFilter(item, currentFilter))
+      .filter(item => matchesSearch(item, searchQuery))
+      .filter(item => matchesMeuNome(item, meuNomeFilter))
+  );
 
   if(filtered.length === 0){
     grid.innerHTML = '';
     empty.style.display = 'block';
+    empty.textContent = (searchQuery || meuNomeFilter)
+      ? 'Nenhum ROS encontrado com esse filtro/busca.'
+      : 'Nenhum ROS encontrado para esse filtro.';
     return;
   }
   empty.style.display = 'none';
 
-  grid.innerHTML = filtered.map(item => {
-    const dias = diasEmAberto(item);
-    return `
+  if(viewMode === 'list'){
+    grid.className = 'ros-list';
+    grid.innerHTML = filtered.map(item => rosListRowHtml(item)).join('');
+    return;
+  }
+
+  grid.className = 'ros-grid';
+  grid.innerHTML = filtered.map(item => rosCardHtml(item)).join('');
+}
+
+function rosCardHtml(item){
+  const dias = diasEmAberto(item);
+  const resolvido = dataConclusaoFor(item);
+  return `
     <div class="ros-card ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
       <div class="ros-top">
         <span class="ros-num">ROS #${item.id}</span>
@@ -480,6 +622,7 @@ function renderRos(){
         <div class="ros-field-value">${escapeHtml(item.descricao) || '—'}</div>
       </div>
       <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· há ${dias} dia${dias === 1 ? '' : 's'}</span>` : ''}</div>
+      ${resolvido ? `<div class="ros-resolved-tag">✓ Resolvido em ${resolvido}</div>` : ''}
 
       <div class="ros-expand-hint">
         <svg class="ros-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -489,7 +632,19 @@ function renderRos(){
       </div>
     </div>
   `;
-  }).join('');
+}
+
+function rosListRowHtml(item){
+  const atrasado = isAtrasado(item);
+  return `
+    <div class="ros-list-row ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
+      <div class="ros-list-cell"><span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span></div>
+      <div class="ros-list-cell">${escapeHtml(item.local) || '—'}</div>
+      <div class="ros-list-cell">${escapeHtml(item.descricao) || '—'}</div>
+      <div class="ros-list-cell muted">${escapeHtml(item.abertoPor) || '—'}</div>
+      <div class="ros-list-cell muted">${escapeHtml(item.prazo) || '—'}${atrasado ? '<span class="ros-overdue">ATRASADO</span>' : ''}</div>
+    </div>
+  `;
 }
 
 // Monta o conteúdo do modal de detalhes (aberto ao clicar num card) — não afeta
@@ -497,6 +652,7 @@ function renderRos(){
 function rosDetailBodyHtml(item){
   const atrasado = isAtrasado(item);
   const dias = diasEmAberto(item);
+  const resolvido = dataConclusaoFor(item);
   return `
     <div class="ros-detail-top">
       <span class="ros-num">ROS #${item.id}</span>
@@ -508,6 +664,7 @@ function rosDetailBodyHtml(item){
         <div class="ros-field-value">${escapeHtml(item.descricao) || '—'}</div>
       </div>
       <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· há ${dias} dia${dias === 1 ? '' : 's'}</span>` : ''}</div>
+      ${resolvido ? `<div class="ros-resolved-tag">✓ Resolvido em ${resolvido}</div>` : ''}
       <div>
         <div class="ros-field-label">Nível de risco</div>
         <div class="ros-risk-tag"><span class="ros-risk-dot ${riskDotClass(item.nivelRisco)}"></span>${escapeHtml(item.nivelRisco) || 'Não informado'}</div>
@@ -556,10 +713,10 @@ document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') rosDetailOverlay.classList.remove('show');
 });
 
-// Clicar em qualquer parte do card abre os detalhes numa janela separada
-// (não expande o card nem afeta os cards vizinhos no grid).
+// Clicar em qualquer parte do card (ou linha, no modo lista) abre os detalhes numa
+// janela separada — não expande nem afeta os itens vizinhos.
 document.getElementById('rosGrid').addEventListener('click', (e) => {
-  const card = e.target.closest('.ros-card');
+  const card = e.target.closest('.ros-card, .ros-list-row');
   if(!card) return;
   const id = Number(card.dataset.id);
   const item = allRos.find(r => r.id === id);
@@ -567,7 +724,7 @@ document.getElementById('rosGrid').addEventListener('click', (e) => {
 });
 document.getElementById('rosGrid').addEventListener('keydown', (e) => {
   if(e.key !== 'Enter' && e.key !== ' ') return;
-  const card = e.target.closest('.ros-card');
+  const card = e.target.closest('.ros-card, .ros-list-row');
   if(!card) return;
   e.preventDefault();
   card.click();
@@ -596,6 +753,52 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 loadRos();
 setInterval(loadRos, 30000);
+
+/* ---------------- Busca, "Meus ROS" e alternar cards/lista ---------------- */
+const rosSearchInput = document.getElementById('rosSearchInput');
+rosSearchInput.addEventListener('input', () => {
+  searchQuery = rosSearchInput.value;
+  renderRos();
+});
+
+function updateMeusRosBtn(){
+  const btn = document.getElementById('rosMeusBtn');
+  const label = document.getElementById('rosMeusLabel');
+  if(meuNomeFilter){
+    btn.classList.add('active');
+    label.textContent = `Meus ROS (${meuNomeFilter}) ✕`;
+  } else {
+    btn.classList.remove('active');
+    label.textContent = 'Meus ROS';
+  }
+}
+document.getElementById('rosMeusBtn').addEventListener('click', () => {
+  if(meuNomeFilter){
+    meuNomeFilter = '';
+    localStorage.removeItem('rosMeuNome');
+  } else {
+    const nome = prompt('Qual o seu nome, exatamente como aparece em "Aberto por" nos ROS?');
+    if(!nome || !nome.trim()) return;
+    meuNomeFilter = nome.trim();
+    localStorage.setItem('rosMeuNome', meuNomeFilter);
+  }
+  updateMeusRosBtn();
+  renderRos();
+});
+updateMeusRosBtn();
+
+const rosViewCardsBtn = document.getElementById('rosViewCardsBtn');
+const rosViewListBtn = document.getElementById('rosViewListBtn');
+function setRosView(mode){
+  viewMode = mode;
+  localStorage.setItem('rosViewMode', mode);
+  rosViewCardsBtn.classList.toggle('active', mode === 'cards');
+  rosViewListBtn.classList.toggle('active', mode === 'list');
+  renderRos();
+}
+rosViewCardsBtn.addEventListener('click', () => setRosView('cards'));
+rosViewListBtn.addEventListener('click', () => setRosView('list'));
+setRosView(viewMode);
 
 /* ---------------- Painel admin (formulário manual) ---------------- */
 const rosOverlay = document.getElementById('rosOverlay');
@@ -745,6 +948,7 @@ rosOverlay.addEventListener('click', (e) => {
 
 document.getElementById('rosSaveBtn').addEventListener('click', async () => {
   const rows = rosBuffer.map(item => ({
+    id: item.id || null,
     status: item.status,
     nivelRisco: item.nivelRisco,
     local: item.local,
