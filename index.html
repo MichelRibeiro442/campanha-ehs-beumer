@@ -2035,15 +2035,16 @@ function animateDaysCounter(target, durationMs){
 
 function showDiasSemAcidentesBanner(){
   const banner = document.getElementById('splashDaysBanner');
-  if(!banner) return;
+  if(!banner) return false;
   const base = parseDataFlexivelNav(data.diasSemAcidentesDesde);
-  if(!base){ banner.style.display = 'none'; return; }
+  if(!base){ banner.style.display = 'none'; return false; }
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   base.setHours(0,0,0,0);
   const dias = Math.round((hoje.getTime() - base.getTime()) / 86400000);
-  if(dias < 0){ banner.style.display = 'none'; return; }
+  if(dias < 0){ banner.style.display = 'none'; return false; }
   banner.style.display = 'flex';
   animateDaysCounter(dias, 1400);
+  return true;
 }
 
 async function init(){
@@ -2062,9 +2063,14 @@ async function init(){
     await saveUnit('matriz', SEED.matriz);
   }
 
-  showDiasSemAcidentesBanner();
+  const mostrandoContador = showDiasSemAcidentesBanner();
   renderBoard();
   pollLoop();
+  // se o banner de "dias sem acidentes" apareceu, espera a contagem terminar de
+  // animar antes de esconder a splash — senão a animação fica cortada pela metade
+  if(mostrandoContador && !reduceMotion()){
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  }
   hideSplash();
   startTips();
 }
