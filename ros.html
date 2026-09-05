@@ -99,7 +99,6 @@
     transition:border-color .2s ease, background .2s ease;
   }
   .ros-card:hover{border-color:rgba(0,159,227,0.4);}
-  .ros-card.expanded{background:linear-gradient(180deg, rgba(0,159,227,0.09), rgba(255,255,255,0.02)); border-color:rgba(0,159,227,0.45);}
   .ros-card.risk-alto{border-left-color:#EF4444;}
   .ros-card.risk-medio{border-left-color:var(--gold);}
   .ros-card.risk-baixo{border-left-color:#3E7D93;}
@@ -107,15 +106,7 @@
     display:flex; align-items:center; gap:6px; color:var(--blue-light);
     font-size:11.5px; font-weight:600; letter-spacing:0.3px; margin-top:-2px;
   }
-  .ros-chevron{flex:none; transition:transform .25s ease;}
-  .ros-card.expanded .ros-chevron{transform:rotate(180deg);}
-  .ros-details{
-    max-height:0; opacity:0; overflow:hidden;
-    display:flex; flex-direction:column; gap:10px;
-    transition:max-height .3s ease, opacity .25s ease, margin-top .3s ease;
-  }
-  .ros-card.expanded .ros-details{max-height:600px; opacity:1; margin-top:2px;}
-  .ros-details-divider{border-top:1px dashed var(--line); margin:2px 0 0;}
+  .ros-chevron{flex:none;}
   .ros-overdue{
     display:inline-block; margin-left:8px; font-size:10px; font-weight:800; letter-spacing:0.4px;
     color:#FCA5A5; background:rgba(239,68,68,0.16); border:1px solid rgba(239,68,68,0.4);
@@ -187,6 +178,19 @@
   }
   .modal h2{font-family:'Oswald',sans-serif; margin:0 0 4px; font-size:20px;}
   .modal .sub{color:var(--muted); font-size:13px; margin-bottom:18px; line-height:1.5;}
+
+  /* ---------- Modal de detalhes do ROS (abre ao clicar num card) ---------- */
+  .ros-detail-modal{position:relative; max-width:520px;}
+  .ros-detail-close{
+    position:absolute; top:16px; right:18px; background:none; border:none;
+    color:var(--muted); font-size:18px; cursor:pointer; line-height:1; padding:4px;
+  }
+  .ros-detail-close:hover{color:var(--ink);}
+  .ros-detail-top{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-bottom:18px; padding-right:26px;
+  }
+  .ros-detail-fields{display:flex; flex-direction:column; gap:14px;}
   .bulk-area textarea{
     width:100%; min-height:220px; background:rgba(255,255,255,0.05); border:1px solid var(--line);
     border-radius:8px; color:#fff; padding:10px; font-family:'Inter',sans-serif; font-size:13px;
@@ -276,6 +280,13 @@
 
 </div>
 
+<div class="overlay" id="rosDetailOverlay">
+  <div class="modal ros-detail-modal">
+    <button class="ros-detail-close" id="rosDetailCloseBtn" aria-label="Fechar">✕</button>
+    <div id="rosDetailBody"></div>
+  </div>
+</div>
+
 <div class="overlay" id="rosOverlay">
   <div class="modal">
     <h2>Editar ROS (Desvios)</h2>
@@ -308,7 +319,6 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVB
 let allRos = [];
 let allHistoricoRos = [];
 let currentFilter = 'abertos';
-const expandedIds = new Set();
 
 function statusClass(status){
   const s = (status || '').trim().toLowerCase();
@@ -458,11 +468,9 @@ function renderRos(){
   empty.style.display = 'none';
 
   grid.innerHTML = filtered.map(item => {
-    const expanded = expandedIds.has(item.id);
-    const atrasado = isAtrasado(item);
     const dias = diasEmAberto(item);
     return `
-    <div class="ros-card${expanded ? ' expanded' : ''} ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
+    <div class="ros-card ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
       <div class="ros-top">
         <span class="ros-num">ROS #${item.id}</span>
         <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
@@ -475,56 +483,87 @@ function renderRos(){
 
       <div class="ros-expand-hint">
         <svg class="ros-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 9l6 6 6-6"></path>
+          <path d="M9 18l6-6-6-6"></path>
         </svg>
-        <span>${expanded ? 'Ver menos' : 'Ver mais detalhes'}</span>
-      </div>
-
-      <div class="ros-details">
-        <div class="ros-details-divider"></div>
-        <div>
-          <div class="ros-field-label">Nível de risco</div>
-          <div class="ros-risk-tag"><span class="ros-risk-dot ${riskDotClass(item.nivelRisco)}"></span>${escapeHtml(item.nivelRisco) || 'Não informado'}</div>
-        </div>
-        <div>
-          <div class="ros-field-label">Local</div>
-          <div class="ros-field-value">${escapeHtml(item.local) || '—'}</div>
-        </div>
-        <div>
-          <div class="ros-field-label">Data de abertura</div>
-          <div class="ros-field-value">${escapeHtml(item.dataAbertura) || '—'}</div>
-        </div>
-        <div>
-          <div class="ros-field-label">Plano de ação</div>
-          <div class="ros-field-value">${escapeHtml(item.planoAcao) || '—'}</div>
-        </div>
-        <div>
-          <div class="ros-field-label">Responsável pelo plano de ação</div>
-          <div class="ros-field-value">${escapeHtml(item.responsavelPlano) || '—'}</div>
-        </div>
-        <div>
-          <div class="ros-field-label">Prazo para resolução</div>
-          <div class="ros-field-value">${escapeHtml(item.prazo) || '—'}${atrasado ? '<span class="ros-overdue">ATRASADO</span>' : ''}</div>
-        </div>
-        <div>
-          <div class="ros-field-label">Histórico de status</div>
-          ${historyHtmlFor(item)}
-        </div>
+        <span>Ver detalhes</span>
       </div>
     </div>
   `;
   }).join('');
 }
 
-// Clicar em qualquer parte do card expande/recolhe os detalhes (delegação de evento,
-// funciona mesmo depois de recarregar a lista a cada 30s).
+// Monta o conteúdo do modal de detalhes (aberto ao clicar num card) — não afeta
+// o tamanho dos outros cards, já que é uma janela separada, sobreposta.
+function rosDetailBodyHtml(item){
+  const atrasado = isAtrasado(item);
+  const dias = diasEmAberto(item);
+  return `
+    <div class="ros-detail-top">
+      <span class="ros-num">ROS #${item.id}</span>
+      <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
+    </div>
+    <div class="ros-detail-fields">
+      <div>
+        <div class="ros-field-label">Descrição</div>
+        <div class="ros-field-value">${escapeHtml(item.descricao) || '—'}</div>
+      </div>
+      <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· há ${dias} dia${dias === 1 ? '' : 's'}</span>` : ''}</div>
+      <div>
+        <div class="ros-field-label">Nível de risco</div>
+        <div class="ros-risk-tag"><span class="ros-risk-dot ${riskDotClass(item.nivelRisco)}"></span>${escapeHtml(item.nivelRisco) || 'Não informado'}</div>
+      </div>
+      <div>
+        <div class="ros-field-label">Local</div>
+        <div class="ros-field-value">${escapeHtml(item.local) || '—'}</div>
+      </div>
+      <div>
+        <div class="ros-field-label">Data de abertura</div>
+        <div class="ros-field-value">${escapeHtml(item.dataAbertura) || '—'}</div>
+      </div>
+      <div>
+        <div class="ros-field-label">Plano de ação</div>
+        <div class="ros-field-value">${escapeHtml(item.planoAcao) || '—'}</div>
+      </div>
+      <div>
+        <div class="ros-field-label">Responsável pelo plano de ação</div>
+        <div class="ros-field-value">${escapeHtml(item.responsavelPlano) || '—'}</div>
+      </div>
+      <div>
+        <div class="ros-field-label">Prazo para resolução</div>
+        <div class="ros-field-value">${escapeHtml(item.prazo) || '—'}${atrasado ? '<span class="ros-overdue">ATRASADO</span>' : ''}</div>
+      </div>
+      <div>
+        <div class="ros-field-label">Histórico de status</div>
+        ${historyHtmlFor(item)}
+      </div>
+    </div>
+  `;
+}
+
+function openRosDetail(item){
+  document.getElementById('rosDetailBody').innerHTML = rosDetailBodyHtml(item);
+  document.getElementById('rosDetailOverlay').classList.add('show');
+}
+
+const rosDetailOverlay = document.getElementById('rosDetailOverlay');
+document.getElementById('rosDetailCloseBtn').addEventListener('click', () => {
+  rosDetailOverlay.classList.remove('show');
+});
+rosDetailOverlay.addEventListener('click', (e) => {
+  if(e.target === rosDetailOverlay) rosDetailOverlay.classList.remove('show');
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') rosDetailOverlay.classList.remove('show');
+});
+
+// Clicar em qualquer parte do card abre os detalhes numa janela separada
+// (não expande o card nem afeta os cards vizinhos no grid).
 document.getElementById('rosGrid').addEventListener('click', (e) => {
   const card = e.target.closest('.ros-card');
   if(!card) return;
   const id = Number(card.dataset.id);
-  if(expandedIds.has(id)) expandedIds.delete(id);
-  else expandedIds.add(id);
-  renderRos();
+  const item = allRos.find(r => r.id === id);
+  if(item) openRosDetail(item);
 });
 document.getElementById('rosGrid').addEventListener('keydown', (e) => {
   if(e.key !== 'Enter' && e.key !== ' ') return;
