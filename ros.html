@@ -45,6 +45,7 @@
     border-bottom:1px solid var(--line);
   }
   .brand{display:flex; align-items:center;}
+  .header-actions{display:flex; align-items:center; gap:10px; flex:none;}
   .brand-chip img{display:block; height:52px; width:auto; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));}
   .campaign{text-align:center; flex:1; min-width:260px;}
   .campaign h1{
@@ -64,6 +65,8 @@
   }
   .back-btn:hover{background:rgba(255,255,255,0.09); border-color:var(--blue-light); transform:translateY(-1px);}
   .back-btn svg{flex:none;}
+  button.back-btn{cursor:pointer;}
+  .ros-trend-header-btn.active{background:var(--blue); color:#031A22; border-color:var(--blue);}
 
   /* ---------- Filtros ---------- */
   .tabs{display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:30px; flex-wrap:wrap;}
@@ -115,6 +118,12 @@
   }
   .ros-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .ros-num{font-family:'Oswald',sans-serif; font-size:12px; color:var(--muted); letter-spacing:0.5px;}
+  .ros-top-left{display:flex; align-items:center; gap:8px;}
+  .ros-unit-tag{
+    font-size:10px; font-weight:700; letter-spacing:0.4px; padding:2px 9px; border-radius:999px;
+    border:1px solid var(--line); color:var(--blue-light); background:rgba(0,159,227,0.08);
+    white-space:nowrap;
+  }
   .ros-status{
     display:inline-flex; align-items:center; font-family:'Inter',sans-serif;
     font-size:11px; font-weight:700; letter-spacing:0.3px;
@@ -183,10 +192,32 @@
   .ros-view-btn:hover{color:var(--ink);}
   .ros-view-btn.active{background:var(--blue); color:#031A22;}
 
+  .ros-unit-toggle{display:flex; flex:none; border:1px solid var(--line); border-radius:999px; overflow:hidden;}
+  .ros-unit-btn{
+    padding:9px 15px; background:rgba(255,255,255,0.03); color:var(--muted); border:none;
+    border-right:1px solid var(--line); cursor:pointer;
+    font-family:'Oswald',sans-serif; font-size:12.5px; font-weight:500; letter-spacing:0.3px;
+    transition:background .2s ease, color .2s ease;
+  }
+  .ros-unit-btn:last-child{border-right:none;}
+  .ros-unit-btn:hover{color:var(--ink);}
+  .ros-unit-btn.active{background:var(--blue); color:#031A22;}
+
+  .ros-sort-select{
+    flex:none; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:999px;
+    color:var(--ink); padding:9px 14px; font-family:'Inter',sans-serif; font-size:12.5px; cursor:pointer;
+  }
+  .ros-sort-select:focus{outline:2px solid var(--blue); outline-offset:1px;}
+  .ros-sort-select option{background:var(--navy); color:#fff;}
+
+  .ros-trend-modal{position:relative; max-width:680px;}
+  .ros-trend-empty{font-size:12px; color:var(--muted); text-align:center; padding:20px;}
+  .ros-trend-caption{font-size:10.5px; color:var(--muted); text-align:center; margin-top:8px; line-height:1.4;}
+
   /* ---------- Visualização em lista compacta ---------- */
   .ros-list{display:flex; flex-direction:column; gap:8px; margin-bottom:20px;}
   .ros-list-row{
-    display:grid; grid-template-columns:112px 1fr 1.4fr 150px 130px;
+    display:grid; grid-template-columns:80px 112px 1fr 1.4fr 150px 130px;
     gap:14px; align-items:center;
     background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
     border:1px solid var(--line); border-left:4px solid var(--line); border-radius:10px;
@@ -314,13 +345,22 @@
       <h1>Painel HSE - ROS</h1>
       <p>DESVIOS &amp; PLANOS DE AÇÃO</p>
     </div>
-    <a class="back-btn" href="./index.html">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 12H5"></path>
-        <path d="M12 19l-7-7 7-7"></path>
-      </svg>
-      Voltar ao placar
-    </a>
+    <div class="header-actions">
+      <button type="button" class="back-btn ros-trend-header-btn" id="rosTrendBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18"></path>
+          <path d="M7 15l4-6 4 3 5-8"></path>
+        </svg>
+        Tendência
+      </button>
+      <a class="back-btn" href="./index.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"></path>
+          <path d="M12 19l-7-7 7-7"></path>
+        </svg>
+        Voltar ao placar
+      </a>
+    </div>
   </header>
 
   <div class="tabs">
@@ -338,6 +378,15 @@
       </svg>
       <input type="text" id="rosSearchInput" placeholder="Buscar por local, descrição, quem abriu...">
     </div>
+    <div class="ros-unit-toggle">
+      <button type="button" class="ros-unit-btn active" data-unit="">Todas</button>
+      <button type="button" class="ros-unit-btn" data-unit="Filial">Filial</button>
+      <button type="button" class="ros-unit-btn" data-unit="Matriz">Matriz</button>
+    </div>
+    <select class="ros-sort-select" id="rosSortSelect">
+      <option value="priority">Ordenar: Prioridade</option>
+      <option value="recent">Ordenar: Mais recentes</option>
+    </select>
     <button type="button" class="ros-meus-btn" id="rosMeusBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -364,6 +413,7 @@
     </div>
   </div>
 
+
   <div id="rosGrid" class="ros-grid"></div>
   <div id="emptyState" class="empty-state" style="display:none;">Nenhum ROS encontrado para esse filtro.</div>
 
@@ -382,6 +432,15 @@
   <div class="modal ros-detail-modal">
     <button class="ros-detail-close" id="rosDetailCloseBtn" aria-label="Fechar">✕</button>
     <div id="rosDetailBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="rosTrendOverlay">
+  <div class="modal ros-trend-modal">
+    <button class="ros-detail-close" id="rosTrendCloseBtn" aria-label="Fechar">✕</button>
+    <h2>Tendência de ROS</h2>
+    <div class="sub">Abertos vs. concluídos ao longo do tempo.</div>
+    <div id="rosTrendChart"></div>
   </div>
 </div>
 
@@ -420,6 +479,8 @@ let currentFilter = 'abertos';
 let searchQuery = '';
 let meuNomeFilter = localStorage.getItem('rosMeuNome') || '';
 let viewMode = localStorage.getItem('rosViewMode') || 'cards';
+let unitFilter = '';
+let sortMode = 'priority';
 
 function statusClass(status){
   const s = (status || '').trim().toLowerCase();
@@ -510,6 +571,12 @@ function sortRosByPriority(list){
   });
 }
 
+// "Mais recentes primeiro": o ID é sequencial e crescente, então o maior ID é
+// sempre o ROS cadastrado por último.
+function sortRosByRecent(list){
+  return [...list].sort((a, b) => b.id - a.id);
+}
+
 function matchesFilter(item, filter){
   const s = (item.status || '').trim().toLowerCase();
   if(filter === 'todos') return true;
@@ -519,11 +586,16 @@ function matchesFilter(item, filter){
   return true;
 }
 
+function matchesUnit(item, unit){
+  if(!unit) return true;
+  return (item.unidade || '').trim().toLowerCase() === unit.toLowerCase();
+}
+
 function matchesSearch(item, query){
   if(!query) return true;
   const q = query.trim().toLowerCase();
   if(!q) return true;
-  const haystack = [item.local, item.descricao, item.abertoPor, item.responsavelPlano]
+  const haystack = [item.local, item.descricao, item.abertoPor, item.responsavelPlano, item.unidade]
     .map(v => (v || '').toLowerCase()).join(' ');
   return haystack.includes(q);
 }
@@ -586,17 +658,17 @@ function renderRos(){
   updateTabCounts();
   const grid = document.getElementById('rosGrid');
   const empty = document.getElementById('emptyState');
-  const filtered = sortRosByPriority(
-    allRos
-      .filter(item => matchesFilter(item, currentFilter))
-      .filter(item => matchesSearch(item, searchQuery))
-      .filter(item => matchesMeuNome(item, meuNomeFilter))
-  );
+  const preSorted = allRos
+    .filter(item => matchesFilter(item, currentFilter))
+    .filter(item => matchesSearch(item, searchQuery))
+    .filter(item => matchesMeuNome(item, meuNomeFilter))
+    .filter(item => matchesUnit(item, unitFilter));
+  const filtered = sortMode === 'recent' ? sortRosByRecent(preSorted) : sortRosByPriority(preSorted);
 
   if(filtered.length === 0){
     grid.innerHTML = '';
     empty.style.display = 'block';
-    empty.textContent = (searchQuery || meuNomeFilter)
+    empty.textContent = (searchQuery || meuNomeFilter || unitFilter)
       ? 'Nenhum ROS encontrado com esse filtro/busca.'
       : 'Nenhum ROS encontrado para esse filtro.';
     return;
@@ -619,7 +691,10 @@ function rosCardHtml(item){
   return `
     <div class="ros-card ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
       <div class="ros-top">
-        <span class="ros-num">ROS #${item.id}</span>
+        <div class="ros-top-left">
+          <span class="ros-num">ROS #${item.id}</span>
+          ${item.unidade ? `<span class="ros-unit-tag">${escapeHtml(item.unidade)}</span>` : ''}
+        </div>
         <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
       </div>
       <div>
@@ -643,6 +718,7 @@ function rosListRowHtml(item){
   const atrasado = isAtrasado(item);
   return `
     <div class="ros-list-row ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
+      <div class="ros-list-cell muted">${escapeHtml(item.unidade) || '—'}</div>
       <div class="ros-list-cell"><span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span></div>
       <div class="ros-list-cell">${escapeHtml(item.local) || '—'}</div>
       <div class="ros-list-cell">${escapeHtml(item.descricao) || '—'}</div>
@@ -660,7 +736,10 @@ function rosDetailBodyHtml(item){
   const resolvido = dataConclusaoFor(item);
   return `
     <div class="ros-detail-top">
-      <span class="ros-num">ROS #${item.id}</span>
+      <div class="ros-top-left">
+        <span class="ros-num">ROS #${item.id}</span>
+        ${item.unidade ? `<span class="ros-unit-tag">${escapeHtml(item.unidade)}</span>` : ''}
+      </div>
       <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
     </div>
     <div class="ros-detail-fields">
@@ -715,7 +794,10 @@ rosDetailOverlay.addEventListener('click', (e) => {
   if(e.target === rosDetailOverlay) rosDetailOverlay.classList.remove('show');
 });
 document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape') rosDetailOverlay.classList.remove('show');
+  if(e.key === 'Escape'){
+    rosDetailOverlay.classList.remove('show');
+    document.getElementById('rosTrendOverlay').classList.remove('show');
+  }
 });
 
 // Clicar em qualquer parte do card (ou linha, no modo lista) abre os detalhes numa
@@ -742,6 +824,8 @@ async function loadRos(){
     allRos = Array.isArray(data.ros) ? data.ros : [];
     allHistoricoRos = Array.isArray(data.historicoRos) ? data.historicoRos : [];
     renderRos();
+    const trendOverlay = document.getElementById('rosTrendOverlay');
+    if(trendOverlay && trendOverlay.classList.contains('show')) renderRosTrendChart();
   }catch(err){
     console.error('Falha ao carregar ROS:', err);
   }
@@ -805,6 +889,104 @@ rosViewCardsBtn.addEventListener('click', () => setRosView('cards'));
 rosViewListBtn.addEventListener('click', () => setRosView('list'));
 setRosView(viewMode);
 
+/* ---------------- Filtro por unidade e ordenação alternativa ---------------- */
+document.querySelectorAll('.ros-unit-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ros-unit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    unitFilter = btn.dataset.unit || '';
+    renderRos();
+  });
+});
+
+document.getElementById('rosSortSelect').addEventListener('change', (e) => {
+  sortMode = e.target.value;
+  renderRos();
+});
+
+/* ---------------- Gráfico de tendência: abertos vs concluídos ao longo do tempo ---------------- */
+// Reconstrói, a partir do histórico de status, quantos ROS foram abertos e quantos
+// foram concluídos (contagem acumulada) — a distância entre as duas linhas mostra
+// o "estoque" de ROS ainda em aberto a cada momento.
+function buildRosTrendSeries(){
+  const events = allHistoricoRos
+    .map(h => ({ t: new Date(h.timestamp).getTime(), statusAnterior: h.statusAnterior, statusNovo: h.statusNovo }))
+    .filter(e => !isNaN(e.t))
+    .sort((a,b) => a.t - b.t);
+
+  let openedCount = 0, concludedCount = 0;
+  const openedSeries = [], concludedSeries = [];
+
+  events.forEach(e => {
+    if(!e.statusAnterior) openedCount++;
+    if(isConcluido(e.statusNovo)) concludedCount++;
+    openedSeries.push({ t: e.t, v: openedCount });
+    concludedSeries.push({ t: e.t, v: concludedCount });
+  });
+
+  return { openedSeries, concludedSeries };
+}
+
+function renderRosTrendChart(){
+  const container = document.getElementById('rosTrendChart');
+  const { openedSeries, concludedSeries } = buildRosTrendSeries();
+  const allPoints = [...openedSeries, ...concludedSeries];
+
+  if(allPoints.length < 2){
+    container.innerHTML = '<div class="ros-trend-empty">Ainda não há histórico suficiente pra mostrar a tendência. Ela vai aparecendo conforme os ROS forem sendo abertos e concluídos.</div>';
+    return;
+  }
+
+  const minT = Math.min(...allPoints.map(p => p.t));
+  const maxT = Math.max(...allPoints.map(p => p.t));
+  const maxV = Math.max(1, ...allPoints.map(p => p.v));
+
+  const W = 640, H = 220, padL = 32, padR = 12, padT = 16, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const xOf = t => (maxT === minT ? padL + plotW/2 : padL + ((t - minT)/(maxT - minT)) * plotW);
+  const yOf = v => padT + plotH - (v / maxV) * plotH;
+
+  const pathOf = series => series.length === 0 ? '' :
+    series.map((p,i) => (i===0?'M':'L') + xOf(p.t).toFixed(1) + ' ' + yOf(p.v).toFixed(1)).join(' ');
+  const dotsOf = (series, color) => series.map(p =>
+    `<circle cx="${xOf(p.t).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3.3" fill="${color}"></circle>`).join('');
+
+  const dateFmt = t => new Date(t).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+
+  container.innerHTML = `
+    <div style="display:flex; gap:16px; font-size:11.5px; color:var(--muted); margin-bottom:8px; justify-content:center;">
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#EF4444;margin-right:5px;"></span>Abertos (acumulado)</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#22C55E;margin-right:5px;"></span>Concluídos (acumulado)</span>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
+      <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
+      <text x="${padL-6}" y="${padT+4}" text-anchor="end" font-size="9" fill="#7FAFC2">${maxV}</text>
+      <text x="${padL-6}" y="${padT+plotH+3}" text-anchor="end" font-size="9" fill="#7FAFC2">0</text>
+      <path d="${pathOf(openedSeries)}" fill="none" stroke="#EF4444" stroke-width="2"></path>
+      <path d="${pathOf(concludedSeries)}" fill="none" stroke="#22C55E" stroke-width="2"></path>
+      ${dotsOf(openedSeries, '#EF4444')}
+      ${dotsOf(concludedSeries, '#22C55E')}
+      <text x="${padL}" y="${H-6}" font-size="9.5" fill="#7FAFC2">${dateFmt(minT)}</text>
+      <text x="${padL+plotW}" y="${H-6}" text-anchor="end" font-size="9.5" fill="#7FAFC2">${dateFmt(maxT)}</text>
+    </svg>
+    <div class="ros-trend-caption">Cada ponto é um evento registrado (ROS aberto ou concluído). A distância entre as duas linhas mostra quantos ROS ainda estavam em aberto naquele momento.</div>
+  `;
+}
+
+const rosTrendBtn = document.getElementById('rosTrendBtn');
+const rosTrendOverlay = document.getElementById('rosTrendOverlay');
+rosTrendBtn.addEventListener('click', () => {
+  renderRosTrendChart();
+  rosTrendOverlay.classList.add('show');
+});
+document.getElementById('rosTrendCloseBtn').addEventListener('click', () => {
+  rosTrendOverlay.classList.remove('show');
+});
+rosTrendOverlay.addEventListener('click', (e) => {
+  if(e.target === rosTrendOverlay) rosTrendOverlay.classList.remove('show');
+});
+
 /* ---------------- Painel admin (formulário manual) ---------------- */
 const rosOverlay = document.getElementById('rosOverlay');
 const rosSaveNote = document.getElementById('rosSaveNote');
@@ -844,10 +1026,12 @@ function isoToBr(value){
 }
 
 function blankRosEntry(){
-  return { id:null, status:'Aberto', nivelRisco:'', local:'', descricao:'', abertoPor:'', dataAbertura:'', planoAcao:'', responsavelPlano:'', prazo:'' };
+  return { id:null, unidade:'', status:'Aberto', nivelRisco:'', local:'', descricao:'', abertoPor:'', dataAbertura:'', planoAcao:'', responsavelPlano:'', prazo:'' };
 }
 
 function rosEditCardHtml(i, item){
+  const unidadeOpts = [['', 'Não informado'], ['Filial','Filial'], ['Matriz','Matriz']].map(([v,l]) =>
+    `<option value="${v}" ${item.unidade === v ? 'selected' : ''}>${l}</option>`).join('');
   const statusOpts = ['Aberto', 'Em andamento', 'Concluído'].map(s =>
     `<option value="${s}" ${item.status === s ? 'selected' : ''}>${s}</option>`).join('');
   const riscoOpts = [['', 'Não informado'], ['Baixo','Baixo'], ['Médio','Médio'], ['Alto','Alto']].map(([v,l]) =>
@@ -860,6 +1044,10 @@ function rosEditCardHtml(i, item){
       <button type="button" class="ros-edit-remove" data-remove="${i}">🗑 remover</button>
     </div>
     <div class="ros-edit-grid">
+      <div class="ros-edit-field">
+        <label>Unidade</label>
+        <select data-idx="${i}" data-field="unidade">${unidadeOpts}</select>
+      </div>
       <div class="ros-edit-field">
         <label>Status</label>
         <select data-idx="${i}" data-field="status">${statusOpts}</select>
@@ -930,6 +1118,7 @@ document.getElementById('rosAddBtn').addEventListener('click', () => {
 document.getElementById('gearBtn').addEventListener('click', () => {
   rosBuffer = allRos.map(item => ({
     id: item.id,
+    unidade: item.unidade || '',
     status: item.status || 'Aberto',
     nivelRisco: item.nivelRisco || '',
     local: item.local || '',
@@ -954,6 +1143,7 @@ rosOverlay.addEventListener('click', (e) => {
 document.getElementById('rosSaveBtn').addEventListener('click', async () => {
   const rows = rosBuffer.map(item => ({
     id: item.id || null,
+    unidade: item.unidade,
     status: item.status,
     nivelRisco: item.nivelRisco,
     local: item.local,
