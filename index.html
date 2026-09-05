@@ -173,6 +173,18 @@
   }
   .tools-btn:hover{background:rgba(0,159,227,0.22); border-color:var(--blue-light); transform:translateY(-1px);}
   .tools-btn svg{flex:none;}
+  .tools-btn-soon{
+    background:rgba(244,190,44,0.12); border-color:rgba(244,190,44,0.4); color:var(--gold);
+    animation:soonPulse 2.4s ease-in-out infinite;
+  }
+  .tools-btn-soon:hover{background:rgba(244,190,44,0.24); border-color:var(--gold);}
+  @keyframes soonPulse{
+    0%,100%{box-shadow:0 0 0 rgba(244,190,44,0);}
+    50%{box-shadow:0 0 14px rgba(244,190,44,0.35);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .tools-btn-soon{animation:none;}
+  }
   .ros-count-badge{
     display:inline-flex; align-items:center; justify-content:center;
     min-width:18px; height:18px; padding:0 5px; border-radius:999px;
@@ -681,6 +693,13 @@
       </svg>
       Painel ROS
       <span class="ros-count-badge" id="rosCountBadge" style="display:none;"></span>
+    </a>
+    <a class="tools-btn tools-btn-soon" href="./em-breve.html">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 6v6l4 2"></path>
+      </svg>
+      Em breve
     </a>
     <a class="tools-btn" href="https://heylink.me/FerramentasHSE/" target="_blank" rel="noopener noreferrer">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

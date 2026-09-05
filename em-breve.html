@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Em Construção — Beumer Group</title>
+<link rel="icon" type="image/png" href="./assets/favicon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#001821;
+    --navy:#00303E;
+    --blue:#009FE3;
+    --blue-light:#6BD0F7;
+    --gold:#F4BE2C;
+    --ink:#EAF7FC;
+    --muted:#7FAFC2;
+    --line:rgba(255,255,255,0.09);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; min-height:100vh; overflow-x:hidden;
+    background:var(--navy-deep);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    position:relative;
+  }
+
+  /* ---------- Fundo animado (aurora) ---------- */
+  .aurora{
+    position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;
+  }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(70px); opacity:0.35;
+    animation:auroraMove 14s ease-in-out infinite;
+  }
+  .aurora span:nth-child(1){
+    width:520px; height:520px; top:-160px; left:-120px;
+    background:radial-gradient(circle, var(--blue), transparent 70%);
+    animation-duration:16s;
+  }
+  .aurora span:nth-child(2){
+    width:480px; height:480px; bottom:-180px; right:-100px;
+    background:radial-gradient(circle, var(--gold), transparent 70%);
+    animation-duration:19s; animation-delay:-4s;
+  }
+  .aurora span:nth-child(3){
+    width:400px; height:400px; top:30%; right:15%;
+    background:radial-gradient(circle, var(--blue-light), transparent 70%);
+    animation-duration:13s; animation-delay:-7s; opacity:0.22;
+  }
+  @keyframes auroraMove{
+    0%,100%{transform:translate(0,0) scale(1);}
+    33%{transform:translate(40px,-30px) scale(1.08);}
+    66%{transform:translate(-30px,25px) scale(0.96);}
+  }
+
+  /* ---------- Partículas subindo ---------- */
+  .particles{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+  .particle{
+    position:absolute; bottom:-20px; border-radius:50%;
+    background:var(--gold); opacity:0;
+    animation:particleRise linear infinite;
+  }
+  @keyframes particleRise{
+    0%{transform:translateY(0) translateX(0); opacity:0;}
+    10%{opacity:0.8;}
+    90%{opacity:0.4;}
+    100%{transform:translateY(-110vh) translateX(var(--drift, 20px)); opacity:0;}
+  }
+
+  /* ---------- Scanline sutil ---------- */
+  .scanline{
+    position:fixed; left:0; right:0; height:2px; z-index:1; pointer-events:none;
+    background:linear-gradient(90deg, transparent, rgba(0,159,227,0.55), transparent);
+    animation:scanMove 5s linear infinite;
+  }
+  @keyframes scanMove{
+    0%{top:-5%;}
+    100%{top:105%;}
+  }
+
+  /* ---------- Conteúdo central ---------- */
+  .wrap{
+    position:relative; z-index:2; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:32px 20px;
+  }
+
+  .back-btn{
+    position:fixed; top:24px; left:24px; z-index:5;
+    display:inline-flex; align-items:center; gap:7px;
+    padding:9px 18px; border-radius:999px;
+    background:rgba(255,255,255,0.05); border:1px solid var(--line);
+    color:var(--ink); font-family:'Oswald',sans-serif; font-size:13px; font-weight:500;
+    letter-spacing:0.3px; text-decoration:none; white-space:nowrap;
+    transition:background .2s ease, transform .2s ease, border-color .2s ease;
+  }
+  .back-btn:hover{background:rgba(255,255,255,0.09); border-color:var(--blue-light); transform:translateY(-1px);}
+
+  .badge{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:8px 20px; border-radius:999px; margin-bottom:34px;
+    background:rgba(244,190,44,0.12); border:1px solid rgba(244,190,44,0.45);
+    color:var(--gold); font-family:'Oswald',sans-serif; font-size:13px; font-weight:600;
+    letter-spacing:3px; text-transform:uppercase;
+    animation:badgePulse 2.2s ease-in-out infinite;
+  }
+  .badge-dot{width:7px; height:7px; border-radius:50%; background:var(--gold); flex:none;}
+  @keyframes badgePulse{
+    0%,100%{box-shadow:0 0 0 rgba(244,190,44,0); transform:scale(1);}
+    50%{box-shadow:0 0 22px rgba(244,190,44,0.4); transform:scale(1.03);}
+  }
+
+  .gear-wrap{
+    position:relative; width:140px; height:140px; margin-bottom:38px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .gear-ring{
+    position:absolute; inset:0; border-radius:50%;
+    border:1px solid rgba(0,159,227,0.35);
+    animation:ringPulse 2.6s ease-in-out infinite;
+  }
+  .gear-ring.r2{inset:-18px; border-color:rgba(244,190,44,0.25); animation-delay:-1.3s;}
+  @keyframes ringPulse{
+    0%,100%{opacity:0.25; transform:scale(1);}
+    50%{opacity:0.7; transform:scale(1.06);}
+  }
+  .gear-icon{
+    color:var(--blue-light); filter:drop-shadow(0 0 18px rgba(0,159,227,0.6));
+    animation:gearSpin 7s linear infinite;
+  }
+  @keyframes gearSpin{ to{ transform:rotate(360deg); } }
+
+  .hype-title{
+    font-family:'Oswald',sans-serif; font-weight:700; font-style:italic;
+    font-size:clamp(28px,5.2vw,52px); line-height:1.15; margin:0 0 10px;
+    background:linear-gradient(100deg, #fff 20%, var(--blue-light) 40%, var(--gold) 50%, var(--blue-light) 60%, #fff 80%);
+    background-size:250% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:shine 4.5s linear infinite;
+  }
+  @keyframes shine{
+    0%{background-position:0% center;}
+    100%{background-position:-250% center;}
+  }
+
+  .hype-subtitle{
+    font-family:'Inter',sans-serif; font-size:clamp(13px,2vw,16px); letter-spacing:3px;
+    text-transform:uppercase; color:var(--muted); margin-bottom:38px;
+  }
+  .hype-subtitle b{color:var(--blue-light); font-weight:700;}
+
+  .progress-track{
+    width:min(360px, 80vw); height:6px; border-radius:999px; overflow:hidden;
+    background:rgba(255,255,255,0.08); margin-bottom:18px; position:relative;
+  }
+  .progress-fill{
+    position:absolute; top:0; bottom:0; left:-40%; width:40%; border-radius:999px;
+    background:linear-gradient(90deg, transparent, var(--blue), var(--gold), var(--blue), transparent);
+    animation:progressSlide 1.8s ease-in-out infinite;
+  }
+  @keyframes progressSlide{
+    0%{left:-40%;}
+    100%{left:100%;}
+  }
+
+  .loading-text{
+    font-family:'Inter',sans-serif; font-size:13px; color:var(--muted); letter-spacing:0.5px;
+  }
+  .loading-text .dots span{
+    animation:dotBlink 1.4s infinite;
+    opacity:0;
+  }
+  .loading-text .dots span:nth-child(2){animation-delay:.2s;}
+  .loading-text .dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes dotBlink{
+    0%,100%{opacity:0;}
+    50%{opacity:1;}
+  }
+
+  .footer-credit{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:20px; font-size:10.5px; letter-spacing:0.4px; color:var(--muted); opacity:0.75;
+    text-align:center; flex-wrap:wrap;
+  }
+  .footer-credit b{color:var(--blue-light); font-weight:600;}
+
+  @media (prefers-reduced-motion:reduce){
+    .aurora span, .particle, .scanline, .badge, .gear-ring, .gear-icon, .hype-title, .progress-fill, .loading-text .dots span{
+      animation:none !important;
+    }
+    .hype-title{background-position:0% center;}
+  }
+
+  @media (max-width:520px){
+    .back-btn{top:16px; left:16px; padding:8px 14px; font-size:12px;}
+    .gear-wrap{width:110px; height:110px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="aurora"><span></span><span></span><span></span></div>
+<div class="particles" id="particles"></div>
+<div class="scanline"></div>
+
+<a class="back-btn" href="./index.html">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5"></path>
+    <path d="M12 19l-7-7 7-7"></path>
+  </svg>
+  Voltar ao placar
+</a>
+
+<div class="wrap">
+  <div class="badge"><span class="badge-dot"></span>Em construção</div>
+
+  <div class="gear-wrap">
+    <div class="gear-ring"></div>
+    <div class="gear-ring r2"></div>
+    <svg class="gear-icon" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </div>
+
+  <h1 class="hype-title">Sistema de Gestão<br>de Campo</h1>
+  <div class="hype-subtitle">(<b>APR</b> &amp; <b>PT</b>) — algo grande está a caminho</div>
+
+  <div class="progress-track"><div class="progress-fill"></div></div>
+  <div class="loading-text">Preparando algo incrível<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+</div>
+
+<div class="footer-credit">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
+    <path d="m9 12 2 2 4-4"></path>
+  </svg>
+  <span>Segurança do Trabalho: <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
+</div>
+
+<script>
+// Gera partículas subindo com posição/tempo/tamanho aleatórios (efeito de "faíscas")
+const container = document.getElementById('particles');
+const total = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 26;
+for(let i = 0; i < total; i++){
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = 2 + Math.random() * 4;
+  p.style.width = size + 'px';
+  p.style.height = size + 'px';
+  p.style.left = Math.random() * 100 + 'vw';
+  p.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+  p.style.animationDuration = (7 + Math.random() * 8) + 's';
+  p.style.animationDelay = (Math.random() * 10) + 's';
+  if(Math.random() > 0.6) p.style.background = '#6BD0F7';
+  container.appendChild(p);
+}
+</script>
+
+</body>
+</html>
