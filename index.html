@@ -1008,16 +1008,17 @@ function setLiveState(online){
 }
 
 // Busca os dados das duas unidades de uma vez só (a planilha devolve tudo junto).
-// Usada tanto para carregar quanto para sincronizar depois de gravar.
+// Usada tanto para carregar quanto para sincronizar depois de gravar. Pede só o
+// necessário pro placar (Dados+Meta) — ROS e Histórico ficam de fora daqui pra não
+// pesar essa consulta, que roda a cada poucos segundos; quem precisa deles busca
+// separadamente (ver fetchRosOnly / fetchAnaliseData).
 async function fetchAllData(){
   try{
-    const res = await fetch(API_URL, { method:'GET' });
+    const res = await fetch(API_URL + '?tipo=placar', { method:'GET' });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     data.filial = Array.isArray(json.filial) ? json.filial : [];
     data.matriz = Array.isArray(json.matriz) ? json.matriz : [];
-    data.ros = Array.isArray(json.ros) ? json.ros : [];
-    data.historico = Array.isArray(json.historico) ? json.historico : [];
     updatedAt.filial = json.updatedAt || null;
     updatedAt.matriz = json.updatedAt || null;
     setLiveState(true);
@@ -1612,13 +1613,32 @@ const adminTabAnalise = document.getElementById('adminTabAnalise');
 const adminPanelPontos = document.getElementById('adminPanelPontos');
 const adminPanelAnalise = document.getElementById('adminPanelAnalise');
 
+// Busca ROS + Histórico + Dados/Meta de uma vez, só quando a aba Análise é aberta
+// (não faz parte do polling normal do placar, pra não pesar as consultas frequentes).
+async function fetchAnaliseData(){
+  const res = await fetch(API_URL + '?tipo=full', { method:'GET' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  data.filial = Array.isArray(json.filial) ? json.filial : data.filial;
+  data.matriz = Array.isArray(json.matriz) ? json.matriz : data.matriz;
+  data.ros = Array.isArray(json.ros) ? json.ros : [];
+  data.historico = Array.isArray(json.historico) ? json.historico : [];
+}
+
 function showAdminTab(tab){
   const isPontos = tab === 'pontos';
   adminTabPontos.classList.toggle('active', isPontos);
   adminTabAnalise.classList.toggle('active', !isPontos);
   adminPanelPontos.style.display = isPontos ? '' : 'none';
   adminPanelAnalise.style.display = isPontos ? 'none' : '';
-  if(!isPontos) renderAnalise();
+  if(!isPontos){
+    document.getElementById('analiseContent').innerHTML = '<div class="evo-empty">Carregando análise...</div>';
+    fetchAnaliseData()
+      .then(renderAnalise)
+      .catch(()=>{
+        document.getElementById('analiseContent').innerHTML = '<div class="evo-empty">Não foi possível carregar a análise agora. Tente fechar e abrir de novo.</div>';
+      });
+  }
 }
 adminTabPontos.addEventListener('click', ()=>showAdminTab('pontos'));
 adminTabAnalise.addEventListener('click', ()=>showAdminTab('analise'));

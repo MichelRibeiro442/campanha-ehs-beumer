@@ -380,7 +380,7 @@ document.getElementById('rosGrid').addEventListener('keydown', (e) => {
 
 async function loadRos(){
   try{
-    const res = await fetch(API_URL, { cache: 'no-store' });
+    const res = await fetch(API_URL + '?tipo=ros', { cache: 'no-store' });
     const data = await res.json();
     allRos = Array.isArray(data.ros) ? data.ros : [];
     renderRos();
