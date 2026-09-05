@@ -461,6 +461,27 @@
   }
   .modal h2{font-family:'Oswald',sans-serif; margin:0 0 4px; font-size:20px;}
   .modal .sub{color:var(--muted); font-size:13px; margin-bottom:18px;}
+  .admin-welcome-modal{text-align:center; max-width:440px;}
+  .admin-welcome-icon{font-size:38px; margin-bottom:10px;}
+  .admin-welcome-modal h2{font-size:22px;}
+  .admin-welcome-modal .sub{text-align:left;}
+  .admin-welcome-modal .sub b{color:var(--blue-light);}
+  .admin-welcome-list{
+    text-align:left; margin:0 0 16px; padding-left:20px;
+    font-size:13px; color:var(--ink); line-height:1.7;
+  }
+  .admin-welcome-list li{margin-bottom:4px;}
+  .admin-welcome-list b{color:var(--blue-light);}
+  .admin-welcome-hint{
+    text-align:left; font-size:13px; color:var(--ink); line-height:1.6;
+    background:rgba(0,159,227,0.08); border:1px solid rgba(0,159,227,0.3);
+    border-radius:10px; padding:12px 14px; margin-bottom:18px;
+  }
+  .gear-inline{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.08);
+    color:var(--blue-light); font-size:13px; vertical-align:middle; margin:0 2px;
+  }
   .unit-toggle{display:flex; gap:8px; margin-bottom:16px;}
   .unit-toggle button{
     flex:1; padding:8px; border-radius:8px; border:1px solid var(--line);
@@ -846,6 +867,28 @@
     </div>
   </footer>
 
+</div>
+
+<div class="overlay" id="adminWelcomeOverlay">
+  <div class="modal admin-welcome-modal">
+    <div class="admin-welcome-icon">👋</div>
+    <h2>Bem-vindo, time HSE!</h2>
+    <div class="sub">
+      Você está na <b>Visão do Administrador</b> do placar. Além de acompanhar a campanha como
+      todo mundo, aqui você também tem acesso a algumas ferramentas extras:
+    </div>
+    <ul class="admin-welcome-list">
+      <li><b>Lançar e editar pontos</b> dos colaboradores, por unidade ou colando direto do Excel</li>
+      <li><b>Ver relatórios e indicadores</b> — evolução dos pontos, quem ainda não pontuou, unidade mais engajada e mais</li>
+      <li><b>Configurar o contador</b> "dias sem acidentes de trabalho" da tela de abertura</li>
+    </ul>
+    <div class="admin-welcome-hint">
+      Tudo isso fica disponível clicando no ícone de engrenagem <span class="gear-inline">⚙</span> no rodapé da página.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" id="adminWelcomeCloseBtn" style="flex:1;">Entendi, vamos lá!</button>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -2044,6 +2087,25 @@ function hideSplash(){
   if(splash) splash.classList.add('hide');
 }
 
+// Popup de boas-vindas só pro admin (?admin=1), só na primeira vez nesse navegador —
+// aparece um instante depois da splash sumir, pra não competir com ela.
+function maybeShowAdminWelcome(){
+  if(!ADMIN_MODE) return;
+  if(localStorage.getItem('adminWelcomeShown') === '1') return;
+  const welcomeOverlay = document.getElementById('adminWelcomeOverlay');
+  if(!welcomeOverlay) return;
+  setTimeout(() => {
+    welcomeOverlay.classList.add('show');
+  }, 700);
+  localStorage.setItem('adminWelcomeShown', '1');
+}
+document.getElementById('adminWelcomeCloseBtn').addEventListener('click', () => {
+  document.getElementById('adminWelcomeOverlay').classList.remove('show');
+});
+document.getElementById('adminWelcomeOverlay').addEventListener('click', (e) => {
+  if(e.target.id === 'adminWelcomeOverlay') document.getElementById('adminWelcomeOverlay').classList.remove('show');
+});
+
 // Anima o número de 0 até o valor final (efeito de contagem), respeitando a
 // preferência do sistema por menos movimento.
 function animateDaysCounter(target, durationMs){
@@ -2102,6 +2164,7 @@ async function init(){
   }
   hideSplash();
   startTips();
+  maybeShowAdminWelcome();
 }
 init();
 </script>
