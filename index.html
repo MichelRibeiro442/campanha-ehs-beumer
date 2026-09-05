@@ -573,8 +573,8 @@
 
   /* ---------- Tela de abertura ---------- */
   .splash{
-    position:fixed; inset:0; z-index:100;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    position:fixed; inset:0; z-index:100; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
     background:
       radial-gradient(1200px 700px at 15% -10%, rgba(0,159,227,0.16), transparent 60%),
       radial-gradient(900px 600px at 105% 10%, rgba(0,159,227,0.10), transparent 55%),
@@ -582,6 +582,13 @@
     transition:opacity .6s ease, visibility .6s ease;
   }
   .splash.hide{opacity:0; visibility:hidden; pointer-events:none;}
+  /* Bloco do topo: sua posição/centralização depende só do próprio conteúdo dele
+     (logo+título+subtítulo) — o painel de dias fica fora desse cálculo (posicionado
+     de forma absoluta logo abaixo), então nada aqui se move quando ele aparece. */
+  .splash-top{
+    position:relative;
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+  }
   .splash-logo{
     animation:splashIn .8s cubic-bezier(.22,1,.36,1) both;
   }
@@ -604,7 +611,9 @@
     to{opacity:1; transform:translateY(0) scale(1);}
   }
   .splash-days-wrap{
-    display:grid; grid-template-rows:0fr; width:100%; justify-items:center;
+    position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    margin-top:16px; width:440px; max-width:86vw;
+    display:grid; grid-template-rows:0fr; justify-items:center;
     transition:grid-template-rows .9s cubic-bezier(.22,1,.36,1);
   }
   .splash-days-wrap.show{grid-template-rows:1fr;}
@@ -637,6 +646,7 @@
   }
   @media (max-width:520px){
     .splash-days-banner{flex-direction:column; gap:8px; padding:16px 22px;}
+    .splash-days-wrap{width:90vw;}
   }
   @media (prefers-reduced-motion:reduce){
     .splash-logo, .splash-title, .splash-sub{animation:none;}
@@ -653,22 +663,24 @@
 </head>
 <body>
 <div class="splash" id="splash">
-  <div class="splash-logo">
-    <img src="./assets/logo-beumer.png" alt="Beumer Group">
-  </div>
-  <div class="splash-title">Nosso Time Bate um Bolão</div>
-  <div class="splash-sub">Campanha de Segurança do Trabalho</div>
-  <div class="splash-days-wrap" id="splashDaysWrap">
-    <div class="splash-days-inner">
-      <div class="splash-days-banner" id="splashDaysBanner">
-        <svg class="days-shield" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
-          <path d="m9 12 2 2 4-4"></path>
-        </svg>
-        <div class="days-banner-text">
-          <span class="days-label">Estamos há</span>
-          <span class="days-number" id="daysNumber">0</span>
-          <span class="days-label">dias sem acidentes de trabalho</span>
+  <div class="splash-top">
+    <div class="splash-logo">
+      <img src="./assets/logo-beumer.png" alt="Beumer Group">
+    </div>
+    <div class="splash-title">Nosso Time Bate um Bolão</div>
+    <div class="splash-sub">Campanha de Segurança do Trabalho</div>
+    <div class="splash-days-wrap" id="splashDaysWrap">
+      <div class="splash-days-inner">
+        <div class="splash-days-banner" id="splashDaysBanner">
+          <svg class="days-shield" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          <div class="days-banner-text">
+            <span class="days-label">Estamos há</span>
+            <span class="days-number" id="daysNumber">0</span>
+            <span class="days-label">dias sem acidentes de trabalho</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2086,7 +2098,7 @@ async function init(){
   // crescer suavemente, a contagem terminar de animar, e ainda ficar visível
   // um tempinho antes da splash começar a sumir
   if(mostrandoContador && !reduceMotion()){
-    await new Promise(resolve => setTimeout(resolve, 2600));
+    await new Promise(resolve => setTimeout(resolve, 4100));
   }
   hideSplash();
   startTips();
