@@ -76,6 +76,15 @@
   }
   .tab:hover{color:var(--ink);}
   .tab.active{background:var(--blue); color:#031A22; border-color:var(--blue); box-shadow:0 6px 18px rgba(0,159,227,0.35);}
+  .tab-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:20px; height:20px; padding:0 6px; border-radius:999px;
+    font-family:'Inter',sans-serif; font-size:11px; font-weight:800; line-height:1;
+    margin-left:7px; vertical-align:middle;
+  }
+  .tab-badge-aberto{background:#EF4444; color:#fff;}
+  .tab-badge-andamento{background:var(--gold); color:#3A2C05;}
+  .tab-badge-concluido{background:#22C55E; color:#052E14;}
 
   /* ---------- Cards de ROS ---------- */
   .ros-grid{
@@ -192,6 +201,39 @@
   .btn-save{background:var(--blue); color:#031A22;}
   .btn-close{background:rgba(255,255,255,0.06); color:var(--ink); border:1px solid var(--line) !important;}
   .save-note{font-size:12px; color:var(--blue-light); height:16px; margin-top:8px; text-align:center;}
+
+  /* ---------- Formulário de cadastro manual de ROS ---------- */
+  .ros-edit-list{display:flex; flex-direction:column; gap:14px; margin-bottom:12px; max-height:50vh; overflow:auto; padding-right:4px;}
+  .ros-edit-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:10px; padding:14px;}
+  .ros-edit-card-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .ros-edit-card-title{font-family:'Oswald',sans-serif; font-weight:700; font-size:13px; color:var(--blue-light); letter-spacing:0.3px;}
+  .ros-edit-remove{
+    background:rgba(255,80,80,0.12); border:1px solid rgba(255,80,80,0.3); border-radius:8px;
+    color:#ff9c9c; cursor:pointer; font-size:12.5px; padding:4px 10px; font-family:'Inter',sans-serif;
+  }
+  .ros-edit-remove:hover{background:rgba(255,80,80,0.22);}
+  .ros-edit-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .ros-edit-field{margin-bottom:2px;}
+  .ros-edit-field.full{grid-column:1 / -1;}
+  .ros-edit-field label{
+    display:block; font-size:10px; letter-spacing:0.6px; text-transform:uppercase;
+    color:var(--muted); margin-bottom:4px;
+  }
+  .ros-edit-field input, .ros-edit-field select, .ros-edit-field textarea{
+    width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:8px;
+    color:#fff; padding:8px 10px; font-family:'Inter',sans-serif; font-size:13px;
+  }
+  .ros-edit-field textarea{resize:vertical; min-height:52px;}
+  .ros-edit-field input:focus, .ros-edit-field select:focus, .ros-edit-field textarea:focus{
+    outline:2px solid var(--blue); outline-offset:1px;
+  }
+  .ros-edit-field select option{background:var(--navy); color:#fff;}
+  .ros-add-btn{
+    width:100%; padding:10px; margin-bottom:6px; border-radius:8px; border:1px dashed var(--line);
+    background:transparent; color:var(--muted); cursor:pointer; font-family:'Inter',sans-serif; font-weight:600; font-size:13px;
+  }
+  .ros-add-btn:hover{color:var(--blue-light); border-color:var(--blue-light);}
+  .ros-edit-empty{font-size:12px; color:var(--muted); text-align:center; padding:18px; font-style:italic;}
 </style>
 </head>
 <body>
@@ -218,9 +260,9 @@
   </header>
 
   <div class="tabs">
-    <div class="tab active" data-filter="abertos">Abertos</div>
-    <div class="tab" data-filter="andamento">Em andamento</div>
-    <div class="tab" data-filter="concluidos">Concluídos</div>
+    <div class="tab active" data-filter="abertos">Abertos <span class="tab-badge tab-badge-aberto" id="countAbertos">0</span></div>
+    <div class="tab" data-filter="andamento">Em andamento <span class="tab-badge tab-badge-andamento" id="countAndamento">0</span></div>
+    <div class="tab" data-filter="concluidos">Concluídos <span class="tab-badge tab-badge-concluido" id="countConcluidos">0</span></div>
     <div class="tab" data-filter="todos">Todos</div>
   </div>
 
@@ -238,18 +280,13 @@
   <div class="modal">
     <h2>Editar ROS (Desvios)</h2>
     <div class="sub">
-      Cole aqui direto do Excel, uma linha por ROS, nesta ordem de colunas:<br>
-      <b>Status</b> → <b>Nível de Risco</b> → <b>Local</b> → <b>Descrição</b> → <b>Aberto por</b> →
-      <b>Data de Abertura</b> → <b>Plano de Ação</b> → <b>Responsável pelo Plano de Ação</b> → <b>Prazo</b><br>
-      Use exatamente <b>Aberto</b>, <b>Em andamento</b> ou <b>Concluído</b> pro status, e <b>Baixo</b>, <b>Médio</b> ou
-      <b>Alto</b> pro nível de risco — são esses textos que colorem o card certinho (qualquer outro valor some em cinza).
-      Datas podem ser tipo 20/09/2026. O histórico de mudança de status é gerado sozinho: pra ele continuar reconhecendo
-      o mesmo ROS entre uma atualização e outra, evite reescrever a Descrição ou o Aberto por — só o Status pode mudar
-      à vontade. Isso substitui a lista inteira pela que for colada aqui.
+      Preencha os campos de cada ROS manualmente. Use os status e níveis de risco das listas — são eles que colorem
+      o card certinho. O histórico de mudança de status é gerado sozinho: pra ele continuar reconhecendo o mesmo ROS
+      entre uma atualização e outra, evite reescrever a Descrição ou o Aberto por depois de criado — só o Status pode
+      mudar à vontade.
     </div>
-    <div class="bulk-area">
-      <textarea id="rosTextarea" placeholder="Ex.: (cole aqui, direto do Excel)&#10;Aberto&#9;Alto&#9;Setor de expedição&#9;Vazamento de óleo na correia 3&#9;João Silva&#9;01/09/2026&#9;Troca da vedação agendada&#9;Carlos Mendes&#9;20/09/2026&#10;Em andamento&#9;Baixo&#9;Almoxarifado&#9;Piso molhado perto da doca&#9;Maria Souza&#9;03/09/2026&#9;Sinalização colocada, aguardando reparo do telhado&#9;Equipe de manutenção&#9;30/09/2026"></textarea>
-    </div>
+    <div class="ros-edit-list" id="rosEditList"></div>
+    <button type="button" class="ros-add-btn" id="rosAddBtn">+ adicionar ROS</button>
     <div class="modal-actions">
       <button class="btn-save" id="rosSaveBtn">Salvar e publicar</button>
       <button class="btn-close" id="rosCloseBtn">Fechar</button>
@@ -397,7 +434,18 @@ function historyHtmlFor(item){
   }).join('') + '</div>';
 }
 
+function updateTabCounts(){
+  const countEl = (id) => document.getElementById(id);
+  const abertos = allRos.filter(item => matchesFilter(item, 'abertos')).length;
+  const andamento = allRos.filter(item => matchesFilter(item, 'andamento')).length;
+  const concluidos = allRos.filter(item => matchesFilter(item, 'concluidos')).length;
+  if(countEl('countAbertos')) countEl('countAbertos').textContent = abertos;
+  if(countEl('countAndamento')) countEl('countAndamento').textContent = andamento;
+  if(countEl('countConcluidos')) countEl('countConcluidos').textContent = concluidos;
+}
+
 function renderRos(){
+  updateTabCounts();
   const grid = document.getElementById('rosGrid');
   const empty = document.getElementById('emptyState');
   const filtered = sortRosByPriority(allRos.filter(item => matchesFilter(item, currentFilter)));
@@ -510,15 +558,142 @@ document.querySelectorAll('.tab').forEach(tab => {
 loadRos();
 setInterval(loadRos, 30000);
 
-/* ---------------- Painel admin ---------------- */
+/* ---------------- Painel admin (formulário manual) ---------------- */
 const rosOverlay = document.getElementById('rosOverlay');
-const rosTextarea = document.getElementById('rosTextarea');
 const rosSaveNote = document.getElementById('rosSaveNote');
+const rosEditList = document.getElementById('rosEditList');
+let rosBuffer = [];
+
+function escapeAttr(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// <input type="date"> exige AAAA-MM-DD; a planilha guarda DD/MM/AAAA. Essas duas
+// funções convertem de um formato pro outro nas duas pontas (carregar / salvar).
+function brToIso(value){
+  if(!value) return '';
+  const m = String(value).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(m){
+    const [, d, mo, y] = m;
+    const year = y.length === 2 ? '20' + y : y;
+    return `${year}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  const asDate = new Date(value);
+  if(!isNaN(asDate.getTime())) return asDate.toISOString().slice(0,10);
+  return '';
+}
+function isoToBr(value){
+  if(!value) return '';
+  const m = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m){
+    const [, y, mo, d] = m;
+    return `${d}/${mo}/${y}`;
+  }
+  return value;
+}
+
+function blankRosEntry(){
+  return { id:null, status:'Aberto', nivelRisco:'', local:'', descricao:'', abertoPor:'', dataAbertura:'', planoAcao:'', responsavelPlano:'', prazo:'' };
+}
+
+function rosEditCardHtml(i, item){
+  const statusOpts = ['Aberto', 'Em andamento', 'Concluído'].map(s =>
+    `<option value="${s}" ${item.status === s ? 'selected' : ''}>${s}</option>`).join('');
+  const riscoOpts = [['', 'Não informado'], ['Baixo','Baixo'], ['Médio','Médio'], ['Alto','Alto']].map(([v,l]) =>
+    `<option value="${v}" ${item.nivelRisco === v ? 'selected' : ''}>${l}</option>`).join('');
+
+  return `
+  <div class="ros-edit-card">
+    <div class="ros-edit-card-header">
+      <span class="ros-edit-card-title">${item.id ? 'ROS #' + item.id : 'ROS novo'}</span>
+      <button type="button" class="ros-edit-remove" data-remove="${i}">🗑 remover</button>
+    </div>
+    <div class="ros-edit-grid">
+      <div class="ros-edit-field">
+        <label>Status</label>
+        <select data-idx="${i}" data-field="status">${statusOpts}</select>
+      </div>
+      <div class="ros-edit-field">
+        <label>Nível de risco</label>
+        <select data-idx="${i}" data-field="nivelRisco">${riscoOpts}</select>
+      </div>
+      <div class="ros-edit-field">
+        <label>Local</label>
+        <input type="text" data-idx="${i}" data-field="local" value="${escapeAttr(item.local)}" placeholder="Ex.: Setor de expedição">
+      </div>
+      <div class="ros-edit-field">
+        <label>Aberto por</label>
+        <input type="text" data-idx="${i}" data-field="abertoPor" value="${escapeAttr(item.abertoPor)}" placeholder="Nome de quem abriu">
+      </div>
+      <div class="ros-edit-field">
+        <label>Data de abertura</label>
+        <input type="date" data-idx="${i}" data-field="dataAbertura" value="${escapeAttr(item.dataAbertura)}">
+      </div>
+      <div class="ros-edit-field">
+        <label>Prazo para resolução</label>
+        <input type="date" data-idx="${i}" data-field="prazo" value="${escapeAttr(item.prazo)}">
+      </div>
+      <div class="ros-edit-field full">
+        <label>Descrição</label>
+        <textarea data-idx="${i}" data-field="descricao" placeholder="O que foi encontrado">${escapeHtml(item.descricao)}</textarea>
+      </div>
+      <div class="ros-edit-field full">
+        <label>Plano de ação</label>
+        <textarea data-idx="${i}" data-field="planoAcao" placeholder="O que será feito pra resolver">${escapeHtml(item.planoAcao)}</textarea>
+      </div>
+      <div class="ros-edit-field full">
+        <label>Responsável pelo plano de ação</label>
+        <input type="text" data-idx="${i}" data-field="responsavelPlano" value="${escapeAttr(item.responsavelPlano)}" placeholder="Quem vai executar">
+      </div>
+    </div>
+  </div>`;
+}
+
+function drawRosForm(){
+  if(rosBuffer.length === 0){
+    rosEditList.innerHTML = '<div class="ros-edit-empty">Nenhum ROS cadastrado ainda. Clique em "+ adicionar ROS" pra criar o primeiro.</div>';
+    return;
+  }
+  rosEditList.innerHTML = rosBuffer.map((item, i) => rosEditCardHtml(i, item)).join('');
+}
+
+// Delegação de evento: atualiza o buffer sem redesenhar a lista a cada tecla digitada
+// (evita perder o foco/cursor do campo que está sendo editado).
+rosEditList.addEventListener('input', (e) => {
+  const idx = e.target.dataset.idx;
+  const field = e.target.dataset.field;
+  if(idx === undefined || !field) return;
+  rosBuffer[Number(idx)][field] = e.target.value;
+});
+rosEditList.addEventListener('click', (e) => {
+  const removeIdx = e.target.dataset.remove;
+  if(removeIdx === undefined) return;
+  rosBuffer.splice(Number(removeIdx), 1);
+  drawRosForm();
+});
+document.getElementById('rosAddBtn').addEventListener('click', () => {
+  rosBuffer.push(blankRosEntry());
+  drawRosForm();
+});
 
 document.getElementById('gearBtn').addEventListener('click', () => {
-  rosTextarea.value = allRos.map(item =>
-    [item.status, item.nivelRisco, item.local, item.descricao, item.abertoPor, item.dataAbertura, item.planoAcao, item.responsavelPlano, item.prazo].join('\t')
-  ).join('\n');
+  rosBuffer = allRos.map(item => ({
+    id: item.id,
+    status: item.status || 'Aberto',
+    nivelRisco: item.nivelRisco || '',
+    local: item.local || '',
+    descricao: item.descricao || '',
+    abertoPor: item.abertoPor || '',
+    dataAbertura: brToIso(item.dataAbertura),
+    planoAcao: item.planoAcao || '',
+    responsavelPlano: item.responsavelPlano || '',
+    prazo: brToIso(item.prazo)
+  }));
+  drawRosForm();
   rosSaveNote.textContent = '';
   rosOverlay.classList.add('show');
 });
@@ -529,28 +704,18 @@ rosOverlay.addEventListener('click', (e) => {
   if(e.target === rosOverlay) rosOverlay.classList.remove('show');
 });
 
-function parseBulk(text){
-  return text.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0)
-    .map(line => {
-      const cols = line.includes('\t') ? line.split('\t') : line.split(/;| {2,}/);
-      return {
-        status: (cols[0] || '').trim(),
-        nivelRisco: (cols[1] || '').trim(),
-        local: (cols[2] || '').trim(),
-        descricao: (cols[3] || '').trim(),
-        abertoPor: (cols[4] || '').trim(),
-        dataAbertura: (cols[5] || '').trim(),
-        planoAcao: (cols[6] || '').trim(),
-        responsavelPlano: (cols[7] || '').trim(),
-        prazo: (cols[8] || '').trim()
-      };
-    });
-}
-
 document.getElementById('rosSaveBtn').addEventListener('click', async () => {
-  const rows = parseBulk(rosTextarea.value);
+  const rows = rosBuffer.map(item => ({
+    status: item.status,
+    nivelRisco: item.nivelRisco,
+    local: item.local,
+    descricao: item.descricao,
+    abertoPor: item.abertoPor,
+    dataAbertura: isoToBr(item.dataAbertura),
+    planoAcao: item.planoAcao,
+    responsavelPlano: item.responsavelPlano,
+    prazo: isoToBr(item.prazo)
+  }));
   rosSaveNote.textContent = 'Salvando...';
   try{
     const res = await fetch(API_URL, {
