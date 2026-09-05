@@ -603,12 +603,23 @@
     from{opacity:0; transform:translateY(14px) scale(.96);}
     to{opacity:1; transform:translateY(0) scale(1);}
   }
+  .splash-days-wrap{
+    display:grid; grid-template-rows:0fr; width:100%; justify-items:center;
+    transition:grid-template-rows .9s cubic-bezier(.22,1,.36,1);
+  }
+  .splash-days-wrap.show{grid-template-rows:1fr;}
+  .splash-days-inner{overflow:hidden; min-height:0; width:100%; display:flex; justify-content:center;}
   .splash-days-banner{
     display:flex; align-items:center; gap:16px;
     margin-top:6px; padding:16px 30px; border-radius:16px;
     background:linear-gradient(135deg, rgba(34,197,94,0.14), rgba(34,197,94,0.03));
     border:1px solid rgba(34,197,94,0.4);
-    animation:splashIn .8s .45s cubic-bezier(.22,1,.36,1) both, daysPulse 3s ease-in-out .9s infinite;
+    opacity:0; transform:scale(.9);
+    transition:opacity .6s ease .3s, transform .6s cubic-bezier(.22,1,.36,1) .3s;
+  }
+  .splash-days-wrap.show .splash-days-banner{
+    opacity:1; transform:scale(1);
+    animation:daysPulse 3s ease-in-out 1.1s infinite;
   }
   .days-shield{flex:none; color:#22C55E; filter:drop-shadow(0 0 8px rgba(34,197,94,0.5));}
   .days-banner-text{display:flex; flex-direction:column; align-items:center; text-align:center; line-height:1.2;}
@@ -629,7 +640,8 @@
   }
   @media (prefers-reduced-motion:reduce){
     .splash-logo, .splash-title, .splash-sub{animation:none;}
-    .splash-days-banner{animation:none;}
+    .splash-days-wrap{transition:none;}
+    .splash-days-banner{transition:none; animation:none;}
   }
 
   @media (max-width:720px){
@@ -646,15 +658,19 @@
   </div>
   <div class="splash-title">Nosso Time Bate um Bolão</div>
   <div class="splash-sub">Campanha de Segurança do Trabalho</div>
-  <div class="splash-days-banner" id="splashDaysBanner" style="display:none;">
-    <svg class="days-shield" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
-      <path d="m9 12 2 2 4-4"></path>
-    </svg>
-    <div class="days-banner-text">
-      <span class="days-label">Estamos há</span>
-      <span class="days-number" id="daysNumber">0</span>
-      <span class="days-label">dias sem acidentes de trabalho</span>
+  <div class="splash-days-wrap" id="splashDaysWrap">
+    <div class="splash-days-inner">
+      <div class="splash-days-banner" id="splashDaysBanner">
+        <svg class="days-shield" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
+          <path d="m9 12 2 2 4-4"></path>
+        </svg>
+        <div class="days-banner-text">
+          <span class="days-label">Estamos há</span>
+          <span class="days-number" id="daysNumber">0</span>
+          <span class="days-label">dias sem acidentes de trabalho</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2034,16 +2050,16 @@ function animateDaysCounter(target, durationMs){
 }
 
 function showDiasSemAcidentesBanner(){
-  const banner = document.getElementById('splashDaysBanner');
-  if(!banner) return false;
+  const wrap = document.getElementById('splashDaysWrap');
+  if(!wrap) return false;
   const base = parseDataFlexivelNav(data.diasSemAcidentesDesde);
-  if(!base){ banner.style.display = 'none'; return false; }
+  if(!base){ wrap.classList.remove('show'); return false; }
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   base.setHours(0,0,0,0);
   const dias = Math.round((hoje.getTime() - base.getTime()) / 86400000);
-  if(dias < 0){ banner.style.display = 'none'; return false; }
-  banner.style.display = 'flex';
-  animateDaysCounter(dias, 1400);
+  if(dias < 0){ wrap.classList.remove('show'); return false; }
+  wrap.classList.add('show');
+  animateDaysCounter(dias, 1600);
   return true;
 }
 
@@ -2066,10 +2082,11 @@ async function init(){
   const mostrandoContador = showDiasSemAcidentesBanner();
   renderBoard();
   pollLoop();
-  // se o banner de "dias sem acidentes" apareceu, espera a contagem terminar de
-  // animar antes de esconder a splash — senão a animação fica cortada pela metade
+  // se o banner de "dias sem acidentes" apareceu, dá tempo de sobra pra ele
+  // crescer suavemente, a contagem terminar de animar, e ainda ficar visível
+  // um tempinho antes da splash começar a sumir
   if(mostrandoContador && !reduceMotion()){
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 2600));
   }
   hideSplash();
   startTips();
