@@ -84,13 +84,16 @@
   }
   .ros-card{
     background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
-    border:1px solid var(--line); border-radius:14px; padding:18px 20px;
+    border:1px solid var(--line); border-left:4px solid var(--line); border-radius:14px; padding:18px 20px;
     display:flex; flex-direction:column; gap:10px;
     cursor:pointer; user-select:none;
     transition:border-color .2s ease, background .2s ease;
   }
   .ros-card:hover{border-color:rgba(0,159,227,0.4);}
   .ros-card.expanded{background:linear-gradient(180deg, rgba(0,159,227,0.09), rgba(255,255,255,0.02)); border-color:rgba(0,159,227,0.45);}
+  .ros-card.risk-alto{border-left-color:#EF4444;}
+  .ros-card.risk-medio{border-left-color:var(--gold);}
+  .ros-card.risk-baixo{border-left-color:#3E7D93;}
   .ros-expand-hint{
     display:flex; align-items:center; gap:6px; color:var(--blue-light);
     font-size:11.5px; font-weight:600; letter-spacing:0.3px; margin-top:-2px;
@@ -125,6 +128,22 @@
   }
   .ros-field-value{font-size:14px; color:var(--ink); line-height:1.45; word-break:break-word;}
   .ros-openedby{font-size:12.5px; color:var(--blue-light); font-weight:600;}
+  .ros-daysopen{font-size:10.5px; color:var(--muted); font-weight:500;}
+  .ros-risk-tag{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:var(--ink);
+  }
+  .ros-risk-dot{width:8px; height:8px; border-radius:50%; flex:none;}
+  .risk-dot-alto{background:#EF4444;}
+  .risk-dot-medio{background:var(--gold);}
+  .risk-dot-baixo{background:#3E7D93;}
+  .risk-dot-outro{background:var(--muted);}
+
+  .ros-history{display:flex; flex-direction:column; gap:6px;}
+  .ros-history-item{
+    display:flex; gap:8px; font-size:12px; color:var(--muted); align-items:baseline;
+  }
+  .ros-history-date{flex:none; color:var(--blue-light); font-weight:600; white-space:nowrap;}
+  .ros-history-empty{font-size:12px; color:var(--muted); font-style:italic;}
 
   .empty-state{
     text-align:center; padding:60px 20px; color:var(--muted);
@@ -220,14 +239,16 @@
     <h2>Editar ROS (Desvios)</h2>
     <div class="sub">
       Cole aqui direto do Excel, uma linha por ROS, nesta ordem de colunas:<br>
-      <b>Status</b> → <b>Local</b> → <b>Descrição</b> → <b>Aberto por</b> → <b>Plano de Ação</b> →
-      <b>Responsável pelo Plano de Ação</b> → <b>Prazo</b><br>
-      Use exatamente os textos de status <b>Aberto</b>, <b>Em andamento</b> ou <b>Concluído</b> pra colorir certinho o card
-      (qualquer outro texto aparece em cinza). O prazo pode ser uma data (ex.: 20/09/2026) — se estiver vencido e o ROS
-      ainda não estiver concluído, o card mostra um aviso de atrasado. Isso substitui a lista inteira pela que for colada aqui.
+      <b>Status</b> → <b>Nível de Risco</b> → <b>Local</b> → <b>Descrição</b> → <b>Aberto por</b> →
+      <b>Data de Abertura</b> → <b>Plano de Ação</b> → <b>Responsável pelo Plano de Ação</b> → <b>Prazo</b><br>
+      Use exatamente <b>Aberto</b>, <b>Em andamento</b> ou <b>Concluído</b> pro status, e <b>Baixo</b>, <b>Médio</b> ou
+      <b>Alto</b> pro nível de risco — são esses textos que colorem o card certinho (qualquer outro valor some em cinza).
+      Datas podem ser tipo 20/09/2026. O histórico de mudança de status é gerado sozinho: pra ele continuar reconhecendo
+      o mesmo ROS entre uma atualização e outra, evite reescrever a Descrição ou o Aberto por — só o Status pode mudar
+      à vontade. Isso substitui a lista inteira pela que for colada aqui.
     </div>
     <div class="bulk-area">
-      <textarea id="rosTextarea" placeholder="Ex.: (cole aqui, direto do Excel)&#10;Aberto&#9;Setor de expedição&#9;Vazamento de óleo na correia 3&#9;João Silva&#9;Troca da vedação agendada&#9;Carlos Mendes&#9;20/09/2026&#10;Em andamento&#9;Almoxarifado&#9;Piso molhado perto da doca&#9;Maria Souza&#9;Sinalização colocada, aguardando reparo do telhado&#9;Equipe de manutenção&#9;30/09/2026"></textarea>
+      <textarea id="rosTextarea" placeholder="Ex.: (cole aqui, direto do Excel)&#10;Aberto&#9;Alto&#9;Setor de expedição&#9;Vazamento de óleo na correia 3&#9;João Silva&#9;01/09/2026&#9;Troca da vedação agendada&#9;Carlos Mendes&#9;20/09/2026&#10;Em andamento&#9;Baixo&#9;Almoxarifado&#9;Piso molhado perto da doca&#9;Maria Souza&#9;03/09/2026&#9;Sinalização colocada, aguardando reparo do telhado&#9;Equipe de manutenção&#9;30/09/2026"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn-save" id="rosSaveBtn">Salvar e publicar</button>
@@ -248,6 +269,7 @@ if(!ADMIN_MODE){
 const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVBRhwsZzbsaaMZ-orXeCgE0r5hAaEB2fsvB0sOn10BVgsveA/exec';
 
 let allRos = [];
+let allHistoricoRos = [];
 let currentFilter = 'abertos';
 const expandedIds = new Set();
 
@@ -264,18 +286,50 @@ function isConcluido(status){
   return s === 'concluído' || s === 'concluido' || s === 'fechado';
 }
 
+function riskClass(nivel){
+  const n = (nivel || '').trim().toLowerCase();
+  if(n === 'alto') return 'risk-alto';
+  if(n === 'médio' || n === 'medio') return 'risk-medio';
+  if(n === 'baixo') return 'risk-baixo';
+  return '';
+}
+function riskDotClass(nivel){
+  const n = (nivel || '').trim().toLowerCase();
+  if(n === 'alto') return 'risk-dot-alto';
+  if(n === 'médio' || n === 'medio') return 'risk-dot-medio';
+  if(n === 'baixo') return 'risk-dot-baixo';
+  return 'risk-dot-outro';
+}
+function riskRank(nivel){
+  const n = (nivel || '').trim().toLowerCase();
+  if(n === 'alto') return 0;
+  if(n === 'médio' || n === 'medio') return 1;
+  if(n === 'baixo') return 2;
+  return 3;
+}
+
 // Aceita datas em formato brasileiro (dd/mm/aaaa) ou o que o Sheets devolver
-function parsePrazo(prazo){
-  if(!prazo) return null;
-  const br = String(prazo).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+function parseDataFlexivel(valor){
+  if(!valor) return null;
+  const br = String(valor).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if(br){
     const [, d, m, y] = br;
     const year = y.length === 2 ? '20' + y : y;
     const date = new Date(Number(year), Number(m) - 1, Number(d));
     return isNaN(date.getTime()) ? null : date;
   }
-  const generic = new Date(prazo);
+  const generic = new Date(valor);
   return isNaN(generic.getTime()) ? null : generic;
+}
+const parsePrazo = parseDataFlexivel;
+
+function diasEmAberto(item){
+  const abertura = parseDataFlexivel(item.dataAbertura);
+  if(!abertura) return null;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  abertura.setHours(0,0,0,0);
+  const diff = Math.round((hoje.getTime() - abertura.getTime()) / 86400000);
+  return diff >= 0 ? diff : null;
 }
 
 function isAtrasado(item){
@@ -285,6 +339,27 @@ function isAtrasado(item){
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
   return data.getTime() < hoje.getTime();
+}
+
+// Prioridade: atrasados primeiro, depois em aberto/andamento (risco alto antes, prazo
+// mais próximo antes), concluídos sempre por último.
+function rosSortValue(item){
+  const concluido = isConcluido(item.status);
+  const atrasado = isAtrasado(item);
+  const bucket = concluido ? 2 : (atrasado ? 0 : 1);
+  const risco = riskRank(item.nivelRisco);
+  const prazoData = parsePrazo(item.prazo);
+  const prazoTime = prazoData ? prazoData.getTime() : Infinity;
+  return { bucket, risco, prazoTime };
+}
+function sortRosByPriority(list){
+  return [...list].sort((a, b) => {
+    const va = rosSortValue(a), vb = rosSortValue(b);
+    if(va.bucket !== vb.bucket) return va.bucket - vb.bucket;
+    if(va.risco !== vb.risco) return va.risco - vb.risco;
+    if(va.prazoTime !== vb.prazoTime) return va.prazoTime - vb.prazoTime;
+    return a.id - b.id;
+  });
 }
 
 function matchesFilter(item, filter){
@@ -302,10 +377,30 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
+function historyHtmlFor(item){
+  const entries = allHistoricoRos
+    .filter(h => h.key === item.key)
+    .slice()
+    .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  if(entries.length === 0){
+    return '<div class="ros-history-empty">Sem mudanças de status registradas ainda.</div>';
+  }
+
+  const fmt = iso => { const d = new Date(iso); return isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }); };
+
+  return '<div class="ros-history">' + entries.map(h => {
+    const texto = h.statusAnterior
+      ? `${escapeHtml(h.statusAnterior) || 'Sem status'} → ${escapeHtml(h.statusNovo) || 'Sem status'}`
+      : `Aberto (status inicial: ${escapeHtml(h.statusNovo) || 'Sem status'})`;
+    return `<div class="ros-history-item"><span class="ros-history-date">${fmt(h.timestamp)}</span><span>${texto}</span></div>`;
+  }).join('') + '</div>';
+}
+
 function renderRos(){
   const grid = document.getElementById('rosGrid');
   const empty = document.getElementById('emptyState');
-  const filtered = allRos.filter(item => matchesFilter(item, currentFilter));
+  const filtered = sortRosByPriority(allRos.filter(item => matchesFilter(item, currentFilter)));
 
   if(filtered.length === 0){
     grid.innerHTML = '';
@@ -317,8 +412,9 @@ function renderRos(){
   grid.innerHTML = filtered.map(item => {
     const expanded = expandedIds.has(item.id);
     const atrasado = isAtrasado(item);
+    const dias = diasEmAberto(item);
     return `
-    <div class="ros-card${expanded ? ' expanded' : ''}" data-id="${item.id}" tabindex="0">
+    <div class="ros-card${expanded ? ' expanded' : ''} ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
       <div class="ros-top">
         <span class="ros-num">ROS #${item.id}</span>
         <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
@@ -327,7 +423,7 @@ function renderRos(){
         <div class="ros-field-label">Descrição</div>
         <div class="ros-field-value">${escapeHtml(item.descricao) || '—'}</div>
       </div>
-      <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}</div>
+      <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· há ${dias} dia${dias === 1 ? '' : 's'}</span>` : ''}</div>
 
       <div class="ros-expand-hint">
         <svg class="ros-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -339,8 +435,16 @@ function renderRos(){
       <div class="ros-details">
         <div class="ros-details-divider"></div>
         <div>
+          <div class="ros-field-label">Nível de risco</div>
+          <div class="ros-risk-tag"><span class="ros-risk-dot ${riskDotClass(item.nivelRisco)}"></span>${escapeHtml(item.nivelRisco) || 'Não informado'}</div>
+        </div>
+        <div>
           <div class="ros-field-label">Local</div>
           <div class="ros-field-value">${escapeHtml(item.local) || '—'}</div>
+        </div>
+        <div>
+          <div class="ros-field-label">Data de abertura</div>
+          <div class="ros-field-value">${escapeHtml(item.dataAbertura) || '—'}</div>
         </div>
         <div>
           <div class="ros-field-label">Plano de ação</div>
@@ -353,6 +457,10 @@ function renderRos(){
         <div>
           <div class="ros-field-label">Prazo para resolução</div>
           <div class="ros-field-value">${escapeHtml(item.prazo) || '—'}${atrasado ? '<span class="ros-overdue">ATRASADO</span>' : ''}</div>
+        </div>
+        <div>
+          <div class="ros-field-label">Histórico de status</div>
+          ${historyHtmlFor(item)}
         </div>
       </div>
     </div>
@@ -383,6 +491,7 @@ async function loadRos(){
     const res = await fetch(API_URL + '?tipo=ros', { cache: 'no-store' });
     const data = await res.json();
     allRos = Array.isArray(data.ros) ? data.ros : [];
+    allHistoricoRos = Array.isArray(data.historicoRos) ? data.historicoRos : [];
     renderRos();
   }catch(err){
     console.error('Falha ao carregar ROS:', err);
@@ -408,7 +517,7 @@ const rosSaveNote = document.getElementById('rosSaveNote');
 
 document.getElementById('gearBtn').addEventListener('click', () => {
   rosTextarea.value = allRos.map(item =>
-    [item.status, item.local, item.descricao, item.abertoPor, item.planoAcao, item.responsavelPlano, item.prazo].join('\t')
+    [item.status, item.nivelRisco, item.local, item.descricao, item.abertoPor, item.dataAbertura, item.planoAcao, item.responsavelPlano, item.prazo].join('\t')
   ).join('\n');
   rosSaveNote.textContent = '';
   rosOverlay.classList.add('show');
@@ -428,12 +537,14 @@ function parseBulk(text){
       const cols = line.includes('\t') ? line.split('\t') : line.split(/;| {2,}/);
       return {
         status: (cols[0] || '').trim(),
-        local: (cols[1] || '').trim(),
-        descricao: (cols[2] || '').trim(),
-        abertoPor: (cols[3] || '').trim(),
-        planoAcao: (cols[4] || '').trim(),
-        responsavelPlano: (cols[5] || '').trim(),
-        prazo: (cols[6] || '').trim()
+        nivelRisco: (cols[1] || '').trim(),
+        local: (cols[2] || '').trim(),
+        descricao: (cols[3] || '').trim(),
+        abertoPor: (cols[4] || '').trim(),
+        dataAbertura: (cols[5] || '').trim(),
+        planoAcao: (cols[6] || '').trim(),
+        responsavelPlano: (cols[7] || '').trim(),
+        prazo: (cols[8] || '').trim()
       };
     });
 }

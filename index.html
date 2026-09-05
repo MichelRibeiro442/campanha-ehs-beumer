@@ -171,6 +171,12 @@
   }
   .tools-btn:hover{background:rgba(0,159,227,0.22); border-color:var(--blue-light); transform:translateY(-1px);}
   .tools-btn svg{flex:none;}
+  .ros-count-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:18px; height:18px; padding:0 5px; border-radius:999px;
+    background:#EF4444; color:#fff; font-family:'Inter',sans-serif; font-size:10.5px; font-weight:800;
+    line-height:1; margin-left:2px;
+  }
   .no-results{
     text-align:center; padding:34px 20px; color:var(--muted);
     border:1px dashed var(--line); border-radius:14px; font-size:14px;
@@ -596,12 +602,13 @@
       <input type="text" id="searchInput" placeholder="Buscar colaborador pelo nome...">
       <button class="search-clear" id="searchClear" title="Limpar busca">✕</button>
     </div>
-    <a class="tools-btn" href="./ros.html">
+    <a class="tools-btn" href="./ros.html" id="rosNavBtn">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 11l3 3L22 4"></path>
         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
       </svg>
       ROS em aberto
+      <span class="ros-count-badge" id="rosCountBadge" style="display:none;"></span>
     </a>
     <a class="tools-btn" href="https://heylink.me/FerramentasHSE/" target="_blank" rel="noopener noreferrer">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1605,6 +1612,50 @@ async function pollLoop(){
   }
 }
 setInterval(pollLoop, 15000);
+
+/* ---------------- Contador de ROS atrasados (botão "ROS em aberto") ---------------- */
+function parseDataFlexivelNav(valor){
+  if(!valor) return null;
+  const br = String(valor).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(br){
+    const [, d, m, y] = br;
+    const year = y.length === 2 ? '20' + y : y;
+    const date = new Date(Number(year), Number(m) - 1, Number(d));
+    return isNaN(date.getTime()) ? null : date;
+  }
+  const generic = new Date(valor);
+  return isNaN(generic.getTime()) ? null : generic;
+}
+function isConcluidoNav(status){
+  const s = String(status || '').trim().toLowerCase();
+  return s === 'concluído' || s === 'concluido' || s === 'fechado';
+}
+async function refreshRosBadge(){
+  try{
+    const res = await fetch(API_URL + '?tipo=ros', { cache:'no-store' });
+    if(!res.ok) return;
+    const json = await res.json();
+    const rosList = Array.isArray(json.ros) ? json.ros : [];
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const atrasados = rosList.filter(r => {
+      if(isConcluidoNav(r.status)) return false;
+      const d = parseDataFlexivelNav(r.prazo);
+      return d ? d.getTime() < hoje.getTime() : false;
+    }).length;
+    const badge = document.getElementById('rosCountBadge');
+    if(!badge) return;
+    if(atrasados > 0){
+      badge.textContent = atrasados;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }catch(e){
+    // silencioso — o contador é só um "plus", não deve incomodar se falhar
+  }
+}
+refreshRosBadge();
+setInterval(refreshRosBadge, 60000);
 
 /* ---------------- Admin ---------------- */
 const overlay = document.getElementById('overlay');
