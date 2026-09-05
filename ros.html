@@ -116,6 +116,11 @@
     color:#FCA5A5; background:rgba(239,68,68,0.16); border:1px solid rgba(239,68,68,0.4);
     border-radius:999px; padding:2px 8px; vertical-align:middle;
   }
+  .ros-soon{
+    display:inline-block; margin-left:8px; font-size:10px; font-weight:800; letter-spacing:0.4px;
+    color:#3A2C05; background:var(--gold); border:1px solid var(--gold);
+    border-radius:999px; padding:2px 8px; vertical-align:middle;
+  }
   .ros-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .ros-num{font-family:'Oswald',sans-serif; font-size:12px; color:var(--muted); letter-spacing:0.5px;}
   .ros-top-left{display:flex; align-items:center; gap:8px;}
@@ -124,6 +129,14 @@
     border:1px solid var(--line); color:var(--blue-light); background:rgba(0,159,227,0.08);
     white-space:nowrap;
   }
+  .ros-copy-link-btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:24px; height:24px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(255,255,255,0.04); color:var(--muted); cursor:pointer;
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .ros-copy-link-btn:hover{color:var(--blue-light); border-color:var(--blue-light);}
+  .ros-copy-link-btn.copied{color:#86EFAC; border-color:#86EFAC;}
   .ros-status{
     display:inline-flex; align-items:center; font-family:'Inter',sans-serif;
     font-size:11px; font-weight:700; letter-spacing:0.3px;
@@ -550,12 +563,33 @@ function isAtrasado(item){
   return data.getTime() < hoje.getTime();
 }
 
-// Prioridade: atrasados primeiro, depois em aberto/andamento (risco alto antes, prazo
-// mais próximo antes), concluídos sempre por último.
+// Quantos dias faltam pro prazo vencer (0 = vence hoje). Só retorna algo quando
+// está pertinho (até 3 dias) — mais longe que isso não precisa de aviso ainda.
+function diasParaVencer(item){
+  if(isConcluido(item.status) || isAtrasado(item)) return null;
+  const data = parsePrazo(item.prazo);
+  if(!data) return null;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  data.setHours(0,0,0,0);
+  const diff = Math.round((data.getTime() - hoje.getTime()) / 86400000);
+  if(diff < 0 || diff > 3) return null;
+  return diff;
+}
+
+function prazoTagHtml(item){
+  if(isAtrasado(item)) return '<span class="ros-overdue">ATRASADO</span>';
+  const dias = diasParaVencer(item);
+  if(dias === null) return '';
+  return `<span class="ros-soon">${dias === 0 ? 'VENCE HOJE' : 'VENCE EM ' + dias + 'D'}</span>`;
+}
+
+// Prioridade: atrasados primeiro, depois quem vence em breve, depois o resto em
+// aberto/andamento (risco alto antes, prazo mais próximo antes), concluídos por último.
 function rosSortValue(item){
   const concluido = isConcluido(item.status);
   const atrasado = isAtrasado(item);
-  const bucket = concluido ? 2 : (atrasado ? 0 : 1);
+  const vencendo = diasParaVencer(item) !== null;
+  const bucket = concluido ? 3 : (atrasado ? 0 : (vencendo ? 1 : 2));
   const risco = riskRank(item.nivelRisco);
   const prazoData = parsePrazo(item.prazo);
   const prazoTime = prazoData ? prazoData.getTime() : Infinity;
@@ -702,7 +736,7 @@ function rosCardHtml(item){
         <div class="ros-field-value">${escapeHtml(item.descricao) || '—'}</div>
       </div>
       <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· há ${dias} dia${dias === 1 ? '' : 's'}</span>` : ''}</div>
-      ${resolvido ? `<div class="ros-resolved-tag">✓ Resolvido em ${resolvido}</div>` : ''}
+      ${resolvido ? `<div class="ros-resolved-tag">✓ Resolvido em ${resolvido}</div>` : (prazoTagHtml(item) ? `<div>${prazoTagHtml(item)}</div>` : '')}
 
       <div class="ros-expand-hint">
         <svg class="ros-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -723,7 +757,7 @@ function rosListRowHtml(item){
       <div class="ros-list-cell">${escapeHtml(item.local) || '—'}</div>
       <div class="ros-list-cell">${escapeHtml(item.descricao) || '—'}</div>
       <div class="ros-list-cell muted">${escapeHtml(item.abertoPor) || '—'}</div>
-      <div class="ros-list-cell muted">${escapeHtml(item.prazo) || '—'}${atrasado ? '<span class="ros-overdue">ATRASADO</span>' : ''}</div>
+      <div class="ros-list-cell muted">${escapeHtml(item.prazo) || '—'}${prazoTagHtml(item)}</div>
     </div>
   `;
 }
@@ -739,6 +773,12 @@ function rosDetailBodyHtml(item){
       <div class="ros-top-left">
         <span class="ros-num">ROS #${item.id}</span>
         ${item.unidade ? `<span class="ros-unit-tag">${escapeHtml(item.unidade)}</span>` : ''}
+        <button type="button" class="ros-copy-link-btn" id="rosCopyLinkBtn" title="Copiar link direto pra este ROS">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"></path>
+            <path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.5-1.5"></path>
+          </svg>
+        </button>
       </div>
       <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
     </div>
@@ -771,7 +811,7 @@ function rosDetailBodyHtml(item){
       </div>
       <div>
         <div class="ros-field-label">Prazo para resolução</div>
-        <div class="ros-field-value">${escapeHtml(item.prazo) || '—'}${atrasado ? '<span class="ros-overdue">ATRASADO</span>' : ''}</div>
+        <div class="ros-field-value">${escapeHtml(item.prazo) || '—'}${prazoTagHtml(item)}</div>
       </div>
       <div>
         <div class="ros-field-label">Histórico de status</div>
@@ -781,24 +821,60 @@ function rosDetailBodyHtml(item){
   `;
 }
 
-function openRosDetail(item){
+function openRosDetail(item, opts){
+  opts = opts || {};
   document.getElementById('rosDetailBody').innerHTML = rosDetailBodyHtml(item);
   document.getElementById('rosDetailOverlay').classList.add('show');
+  if(opts.pushState !== false){
+    history.pushState(null, '', '#ros-' + item.id);
+  }
+}
+function closeRosDetail(){
+  document.getElementById('rosDetailOverlay').classList.remove('show');
+  if(location.hash.startsWith('#ros-')){
+    history.replaceState(null, '', location.pathname + location.search);
+  }
 }
 
 const rosDetailOverlay = document.getElementById('rosDetailOverlay');
-document.getElementById('rosDetailCloseBtn').addEventListener('click', () => {
-  rosDetailOverlay.classList.remove('show');
-});
+document.getElementById('rosDetailCloseBtn').addEventListener('click', closeRosDetail);
 rosDetailOverlay.addEventListener('click', (e) => {
-  if(e.target === rosDetailOverlay) rosDetailOverlay.classList.remove('show');
+  if(e.target === rosDetailOverlay) closeRosDetail();
 });
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape'){
-    rosDetailOverlay.classList.remove('show');
+    closeRosDetail();
     document.getElementById('rosTrendOverlay').classList.remove('show');
   }
 });
+
+// Botão de copiar o link direto pra esse ROS específico (ex.: pra mandar no WhatsApp)
+document.getElementById('rosDetailBody').addEventListener('click', (e) => {
+  const btn = e.target.closest('#rosCopyLinkBtn');
+  if(!btn) return;
+  const idMatch = location.hash.match(/^#ros-(\d+)$/);
+  const url = location.origin + location.pathname + (idMatch ? location.hash : '');
+  navigator.clipboard.writeText(url).then(() => {
+    btn.classList.add('copied');
+    const original = btn.innerHTML;
+    btn.innerHTML = '✓';
+    setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1400);
+  }).catch(() => {});
+});
+
+// Se a página foi aberta com #ros-123 no link, abre os detalhes desse ROS sozinho.
+let hashAutoOpenDone = false;
+function tryAutoOpenFromHash(){
+  if(hashAutoOpenDone) return;
+  const match = location.hash.match(/^#ros-(\d+)$/);
+  if(!match){ hashAutoOpenDone = true; return; }
+  const id = Number(match[1]);
+  const item = allRos.find(r => r.id === id);
+  if(item){
+    openRosDetail(item, { pushState:false });
+    hashAutoOpenDone = true;
+  }
+}
 
 // Clicar em qualquer parte do card (ou linha, no modo lista) abre os detalhes numa
 // janela separada — não expande nem afeta os itens vizinhos.
@@ -824,6 +900,7 @@ async function loadRos(){
     allRos = Array.isArray(data.ros) ? data.ros : [];
     allHistoricoRos = Array.isArray(data.historicoRos) ? data.historicoRos : [];
     renderRos();
+    tryAutoOpenFromHash();
     const trendOverlay = document.getElementById('rosTrendOverlay');
     if(trendOverlay && trendOverlay.classList.contains('show')) renderRosTrendChart();
   }catch(err){
