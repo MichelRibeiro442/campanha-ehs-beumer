@@ -117,8 +117,10 @@
   }
   .brand{display:flex; align-items:center;}
   .brand-chip{
-    display:flex; align-items:center;
+    display:flex; align-items:center; cursor:pointer;
+    transition:opacity .2s ease, transform .2s ease;
   }
+  .brand-chip:hover{opacity:0.85; transform:translateY(-1px);}
   .brand-chip img{
     display:block; height:58px; width:auto;
     filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));
@@ -217,6 +219,29 @@
   .p1 .medal{background:var(--gold); box-shadow:0 0 22px rgba(244,190,44,0.55);}
   .p2 .medal{background:var(--silver);}
   .p3 .medal{background:var(--bronze);}
+
+  /* Destaque metálico nos cards do pódio, de acordo com a posição */
+  .place.p1{
+    border-color:rgba(244,190,44,0.5);
+    background:linear-gradient(180deg, rgba(244,190,44,0.16), rgba(244,190,44,0.03) 55%, rgba(255,255,255,0.015));
+    box-shadow:0 10px 28px rgba(244,190,44,0.20), inset 0 1px 0 rgba(255,255,255,0.10);
+  }
+  .place.p2{
+    border-color:rgba(203,217,223,0.45);
+    background:linear-gradient(180deg, rgba(203,217,223,0.13), rgba(203,217,223,0.03) 55%, rgba(255,255,255,0.015));
+    box-shadow:0 10px 24px rgba(203,217,223,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .place.p3{
+    border-color:rgba(222,154,78,0.45);
+    background:linear-gradient(180deg, rgba(222,154,78,0.15), rgba(222,154,78,0.03) 55%, rgba(255,255,255,0.015));
+    box-shadow:0 10px 24px rgba(222,154,78,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .place.p1::before, .place.p2::before, .place.p3::before{
+    content:''; position:absolute; top:0; left:14px; right:14px; height:3px; border-radius:3px;
+  }
+  .place.p1::before{background:linear-gradient(90deg, rgba(244,190,44,0), var(--gold), rgba(244,190,44,0));}
+  .place.p2::before{background:linear-gradient(90deg, rgba(203,217,223,0), var(--silver), rgba(203,217,223,0));}
+  .place.p3::before{background:linear-gradient(90deg, rgba(222,154,78,0), var(--bronze), rgba(222,154,78,0));}
   .place .name{
     font-size:16px; font-weight:600; color:#fff; min-height:22px;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px;
@@ -443,6 +468,17 @@
 
   .bulk-area{margin-top:10px;}
   .bulk-hint{font-size:12px; color:var(--muted); margin-bottom:8px; line-height:1.5;}
+  .days-config-box{
+    background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.3); border-radius:10px;
+    padding:12px 14px; margin-bottom:18px;
+  }
+  .days-config-box label{display:block; font-size:11.5px; color:#86EFAC; line-height:1.4; margin-bottom:8px;}
+  .days-config-row{display:flex; gap:8px;}
+  .days-config-row input[type="date"]{
+    flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--line); border-radius:8px;
+    color:#fff; padding:8px 10px; font-family:'Inter',sans-serif; font-size:13px;
+  }
+  .days-config-row .btn-save{flex:none; padding:8px 18px; font-size:13px;}
   .bulk-area textarea{
     width:100%; min-height:120px; background:rgba(255,255,255,0.05); border:1px solid var(--line);
     border-radius:8px; color:#fff; padding:10px; font-family:'Inter',sans-serif; font-size:13px;
@@ -550,8 +586,33 @@
     from{opacity:0; transform:translateY(14px) scale(.96);}
     to{opacity:1; transform:translateY(0) scale(1);}
   }
+  .splash-days-banner{
+    display:flex; align-items:center; gap:16px;
+    margin-top:6px; padding:16px 30px; border-radius:16px;
+    background:linear-gradient(135deg, rgba(34,197,94,0.14), rgba(34,197,94,0.03));
+    border:1px solid rgba(34,197,94,0.4);
+    animation:splashIn .8s .45s cubic-bezier(.22,1,.36,1) both, daysPulse 3s ease-in-out .9s infinite;
+  }
+  .days-shield{flex:none; color:#22C55E; filter:drop-shadow(0 0 8px rgba(34,197,94,0.5));}
+  .days-banner-text{display:flex; flex-direction:column; align-items:center; text-align:center; line-height:1.2;}
+  .days-label{
+    font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:2px; color:#86EFAC;
+    text-transform:uppercase; font-weight:600;
+  }
+  .days-number{
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:clamp(36px,6.5vw,54px);
+    color:#fff; line-height:1.05; text-shadow:0 0 20px rgba(34,197,94,0.6);
+  }
+  @keyframes daysPulse{
+    0%,100%{box-shadow:0 0 26px rgba(34,197,94,0.16), inset 0 1px 0 rgba(255,255,255,0.08);}
+    50%{box-shadow:0 0 40px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.12);}
+  }
+  @media (max-width:520px){
+    .splash-days-banner{flex-direction:column; gap:8px; padding:16px 22px;}
+  }
   @media (prefers-reduced-motion:reduce){
     .splash-logo, .splash-title, .splash-sub{animation:none;}
+    .splash-days-banner{animation:none;}
   }
 
   @media (max-width:720px){
@@ -568,14 +629,25 @@
   </div>
   <div class="splash-title">Nosso Time Bate um Bolão</div>
   <div class="splash-sub">Campanha de Segurança do Trabalho</div>
+  <div class="splash-days-banner" id="splashDaysBanner" style="display:none;">
+    <svg class="days-shield" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
+      <path d="m9 12 2 2 4-4"></path>
+    </svg>
+    <div class="days-banner-text">
+      <span class="days-label">Estamos há</span>
+      <span class="days-number" id="daysNumber">0</span>
+      <span class="days-label">dias sem acidentes de trabalho</span>
+    </div>
+  </div>
 </div>
 <div class="wrap">
 
   <header>
     <div class="brand">
-      <div class="brand-chip">
+      <a class="brand-chip" href="https://www.beumergroup.com/pt-br/" target="_blank" rel="noopener noreferrer" title="Visitar site da Beumer Group">
         <img src="./assets/logo-beumer.png" alt="Beumer Group">
-      </div>
+      </a>
     </div>
     <div class="campaign">
       <h1>Nosso Time Bate um Bolão</h1>
@@ -607,7 +679,7 @@
         <path d="M9 11l3 3L22 4"></path>
         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
       </svg>
-      ROS em aberto
+      Painel ROS
       <span class="ros-count-badge" id="rosCountBadge" style="display:none;"></span>
     </a>
     <a class="tools-btn" href="https://heylink.me/FerramentasHSE/" target="_blank" rel="noopener noreferrer">
@@ -732,6 +804,14 @@
     </div>
 
     <div id="adminPanelPontos">
+      <div class="days-config-box">
+        <label for="diasAcidentesInput">Contador "dias sem acidentes" (tela de abertura) — data do último acidente, ou de início da contagem</label>
+        <div class="days-config-row">
+          <input type="date" id="diasAcidentesInput">
+          <button class="btn-save" id="diasAcidentesSaveBtn">Salvar</button>
+        </div>
+        <div class="save-note" id="diasAcidentesNote"></div>
+      </div>
       <div class="sub">Lance aqui somente o total de pontos de cada colaborador. O critério que originou os pontos não é exibido no placar público.</div>
       <div class="unit-toggle">
         <button class="active" data-unit="filial" id="btnFilial">Filial</button>
@@ -794,7 +874,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVB
 const UNITS = ['filial','matriz']; // unidades reais, com dados próprios na planilha
 let currentUnit = 'filial'; // 'filial' | 'matriz' | 'geral'
 let editUnit = 'filial';
-let data = { filial: [], matriz: [], ros: [], historico: [] };
+let data = { filial: [], matriz: [], ros: [], historico: [], diasSemAcidentesDesde: '' };
 let updatedAt = { filial: null, matriz: null };
 let prevRendered = {}; // guarda última pontuação exibida por nome, p/ animação de flip
 
@@ -1026,6 +1106,7 @@ async function fetchAllData(){
     const json = await res.json();
     data.filial = Array.isArray(json.filial) ? json.filial : [];
     data.matriz = Array.isArray(json.matriz) ? json.matriz : [];
+    data.diasSemAcidentesDesde = json.diasSemAcidentesDesde || '';
     updatedAt.filial = json.updatedAt || null;
     updatedAt.matriz = json.updatedAt || null;
     setLiveState(true);
@@ -1375,7 +1456,6 @@ function renderBoard(){
       <div class="list" id="listBox">
         <div class="list-track" id="listTrack">${listHtml}</div>
       </div>
-      ${q.length===0 && filteredRest.length > 6 ? '<div class="scroll-hint">▾ ROLAGEM AUTOMÁTICA ▾</div>' : ''}
     ` : ''}
   `;
 
@@ -1613,7 +1693,7 @@ async function pollLoop(){
 }
 setInterval(pollLoop, 15000);
 
-/* ---------------- Contador de ROS atrasados (botão "ROS em aberto") ---------------- */
+/* ---------------- Contador de ROS atrasados (botão "Painel ROS") ---------------- */
 function parseDataFlexivelNav(valor){
   if(!valor) return null;
   const br = String(valor).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
@@ -1700,10 +1780,55 @@ document.getElementById('gearBtn').addEventListener('click', ()=>{
   syncUnitButtons();
   renderEditRows();
   showAdminTab('pontos');
+  const diasInput = document.getElementById('diasAcidentesInput');
+  if(diasInput) diasInput.value = brToIsoNav(data.diasSemAcidentesDesde);
+  const diasNote = document.getElementById('diasAcidentesNote');
+  if(diasNote) diasNote.textContent = '';
   overlay.classList.add('show');
 });
 document.getElementById('closeBtn').addEventListener('click', ()=>overlay.classList.remove('show'));
 overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.classList.remove('show'); });
+
+function brToIsoNav(value){
+  if(!value) return '';
+  const m = String(value).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(m){
+    const [, d, mo, y] = m;
+    const year = y.length === 2 ? '20'+y : y;
+    return `${year}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  const asDate = new Date(value);
+  if(!isNaN(asDate.getTime())) return asDate.toISOString().slice(0,10);
+  return '';
+}
+function isoToBrNav(value){
+  const m = String(value||'').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return '';
+  const [, y, mo, d] = m;
+  return `${d}/${mo}/${y}`;
+}
+document.getElementById('diasAcidentesSaveBtn').addEventListener('click', async ()=>{
+  const diasInput = document.getElementById('diasAcidentesInput');
+  const diasNote = document.getElementById('diasAcidentesNote');
+  const brDate = isoToBrNav(diasInput.value);
+  if(!brDate){ diasNote.textContent = 'Escolha uma data válida.'; return; }
+  diasNote.textContent = 'Salvando...';
+  try{
+    const res = await fetch(API_URL, {
+      method:'POST',
+      body: JSON.stringify({ type:'config', diasSemAcidentesDesde: brDate })
+    });
+    const json = await res.json();
+    if(json.ok){
+      data.diasSemAcidentesDesde = brDate;
+      diasNote.textContent = 'Salvo! O contador vai atualizar na próxima abertura da página.';
+    } else {
+      diasNote.textContent = 'Erro: ' + (json.error || 'falha desconhecida');
+    }
+  }catch(err){
+    diasNote.textContent = 'Erro de conexão ao salvar.';
+  }
+});
 
 document.getElementById('btnFilial').addEventListener('click', ()=>{ editUnit='filial'; syncUnitButtons(); renderEditRows(); });
 document.getElementById('btnMatriz').addEventListener('click', ()=>{ editUnit='matriz'; syncUnitButtons(); renderEditRows(); });
@@ -1866,6 +1991,36 @@ function hideSplash(){
   if(splash) splash.classList.add('hide');
 }
 
+// Anima o número de 0 até o valor final (efeito de contagem), respeitando a
+// preferência do sistema por menos movimento.
+function animateDaysCounter(target, durationMs){
+  const el = document.getElementById('daysNumber');
+  if(!el) return;
+  if(reduceMotion() || target <= 0){ el.textContent = target; return; }
+  const start = performance.now();
+  function tick(now){
+    const progress = Math.min(1, (now - start) / durationMs);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if(progress < 1) requestAnimationFrame(tick);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(tick);
+}
+
+function showDiasSemAcidentesBanner(){
+  const banner = document.getElementById('splashDaysBanner');
+  if(!banner) return;
+  const base = parseDataFlexivelNav(data.diasSemAcidentesDesde);
+  if(!base){ banner.style.display = 'none'; return; }
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  base.setHours(0,0,0,0);
+  const dias = Math.round((hoje.getTime() - base.getTime()) / 86400000);
+  if(dias < 0){ banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+  animateDaysCounter(dias, 1400);
+}
+
 async function init(){
   // tempo mínimo de exibição da tela de abertura, pra marca aparecer mesmo
   // quando os dados carregam muito rápido — mas nunca trava além de 4s,
@@ -1882,6 +2037,7 @@ async function init(){
     await saveUnit('matriz', SEED.matriz);
   }
 
+  showDiasSemAcidentesBanner();
   renderBoard();
   pollLoop();
   hideSplash();

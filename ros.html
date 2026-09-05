@@ -281,6 +281,24 @@
     width:100%; max-width:640px; max-height:82vh; overflow:auto; padding:26px;
   }
   .modal h2{font-family:'Oswald',sans-serif; margin:0 0 4px; font-size:20px;}
+
+  /* ---------- Abas do painel admin (Editar ROS / Análise) ---------- */
+  .admin-tabs{display:flex; gap:8px; margin-bottom:16px;}
+  .admin-tab{
+    flex:1; padding:9px; border-radius:8px; border:1px solid var(--line);
+    background:rgba(255,255,255,0.03); color:var(--muted); font-family:'Oswald',sans-serif; font-weight:600;
+    cursor:pointer; font-size:13px; letter-spacing:0.3px;
+  }
+  .admin-tab.active{background:var(--blue); color:#031A22; border-color:var(--blue);}
+
+  .analysis-section{margin-bottom:20px;}
+  .analysis-section h3{font-family:'Oswald',sans-serif; font-size:14px; margin:0 0 10px; color:var(--blue-light); letter-spacing:0.3px;}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
+  .stat-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
+  .stat-card .stat-value{font-family:'Oswald',sans-serif; font-size:21px; font-weight:700; color:#fff;}
+  .stat-card .stat-label{font-size:10.5px; color:var(--muted); letter-spacing:0.2px; margin-top:2px;}
+  .analysis-note{font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4;}
+  .analysis-empty{font-size:12px; color:var(--muted); text-align:center; padding:18px; border:1px dashed var(--line); border-radius:10px;}
   .modal .sub{color:var(--muted); font-size:13px; margin-bottom:18px; line-height:1.5;}
 
   /* ---------- Modal de detalhes do ROS (abre ao clicar num card) ---------- */
@@ -459,20 +477,35 @@
 
 <div class="overlay" id="rosOverlay">
   <div class="modal">
-    <h2>Editar ROS (Desvios)</h2>
-    <div class="sub">
-      Preencha os campos de cada ROS manualmente. Use os status e níveis de risco das listas — são eles que colorem
-      o card certinho. O histórico de mudança de status é gerado sozinho: pra ele continuar reconhecendo o mesmo ROS
-      entre uma atualização e outra, evite reescrever a Descrição ou o Aberto por depois de criado — só o Status pode
-      mudar à vontade.
+    <h2>Painel do administrador</h2>
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="rosAdminTabEdit">Editar ROS</button>
+      <button class="admin-tab" id="rosAdminTabAnalise">Análise</button>
     </div>
-    <div class="ros-edit-list" id="rosEditList"></div>
-    <button type="button" class="ros-add-btn" id="rosAddBtn">+ adicionar ROS</button>
-    <div class="modal-actions">
-      <button class="btn-save" id="rosSaveBtn">Salvar e publicar</button>
-      <button class="btn-close" id="rosCloseBtn">Fechar</button>
+
+    <div id="rosAdminPanelEdit">
+      <div class="sub">
+        Preencha os campos de cada ROS manualmente. Use os status e níveis de risco das listas — são eles que colorem
+        o card certinho. O histórico de mudança de status é gerado sozinho: pra ele continuar reconhecendo o mesmo ROS
+        entre uma atualização e outra, evite reescrever a Descrição ou o Aberto por depois de criado — só o Status pode
+        mudar à vontade.
+      </div>
+      <div class="ros-edit-list" id="rosEditList"></div>
+      <button type="button" class="ros-add-btn" id="rosAddBtn">+ adicionar ROS</button>
+      <div class="modal-actions">
+        <button class="btn-save" id="rosSaveBtn">Salvar e publicar</button>
+        <button class="btn-close" id="rosCloseBtn">Fechar</button>
+      </div>
+      <div class="save-note" id="rosSaveNote"></div>
     </div>
-    <div class="save-note" id="rosSaveNote"></div>
+
+    <div id="rosAdminPanelAnalise" style="display:none;">
+      <div class="sub">Indicadores de maturidade calculados a partir do histórico de status dos ROS.</div>
+      <div id="rosAnaliseContent"></div>
+      <div class="modal-actions">
+        <button class="btn-close" id="rosCloseBtnAnalise" style="flex:1;">Fechar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1192,6 +1225,182 @@ document.getElementById('rosAddBtn').addEventListener('click', () => {
   drawRosForm();
 });
 
+/* ---------------- Aba Análise do painel admin (indicadores de maturidade) ---------------- */
+const rosAdminTabEdit = document.getElementById('rosAdminTabEdit');
+const rosAdminTabAnalise = document.getElementById('rosAdminTabAnalise');
+const rosAdminPanelEdit = document.getElementById('rosAdminPanelEdit');
+const rosAdminPanelAnalise = document.getElementById('rosAdminPanelAnalise');
+
+function showRosAdminTab(tab){
+  const isEdit = tab === 'edit';
+  rosAdminTabEdit.classList.toggle('active', isEdit);
+  rosAdminTabAnalise.classList.toggle('active', !isEdit);
+  rosAdminPanelEdit.style.display = isEdit ? '' : 'none';
+  rosAdminPanelAnalise.style.display = isEdit ? 'none' : '';
+  if(!isEdit) renderRosAnalise();
+}
+rosAdminTabEdit.addEventListener('click', () => showRosAdminTab('edit'));
+rosAdminTabAnalise.addEventListener('click', () => showRosAdminTab('analise'));
+document.getElementById('rosCloseBtnAnalise').addEventListener('click', () => rosOverlay.classList.remove('show'));
+
+// Tempo médio de resolução + taxa de cumprimento de prazo: casa, pra cada ROS (pela
+// chave/ID), o evento de criação com o evento em que ele virou Concluído.
+function buildRosResolutionStats(){
+  const byKey = {};
+  allHistoricoRos.forEach(h => {
+    if(!byKey[h.key]) byKey[h.key] = [];
+    byKey[h.key].push(h);
+  });
+
+  const duracoes = [];
+  let dentroDoPrazo = 0, foraDoPrazo = 0;
+
+  Object.keys(byKey).forEach(key => {
+    const eventos = byKey[key].slice().sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const criacao = eventos.find(e => !e.statusAnterior);
+    const conclusao = eventos.find(e => isConcluido(e.statusNovo));
+    if(!criacao || !conclusao) return;
+
+    const dCriacao = new Date(criacao.timestamp);
+    const dConclusao = new Date(conclusao.timestamp);
+    if(isNaN(dCriacao.getTime()) || isNaN(dConclusao.getTime()) || dConclusao < dCriacao) return;
+
+    duracoes.push(Math.round((dConclusao.getTime() - dCriacao.getTime()) / 86400000));
+
+    const item = allRos.find(r => r.key === key);
+    if(item && item.prazo){
+      const prazoData = parsePrazo(item.prazo);
+      if(prazoData){
+        if(dConclusao.getTime() <= prazoData.getTime()) dentroDoPrazo++;
+        else foraDoPrazo++;
+      }
+    }
+  });
+
+  const mediaDias = duracoes.length ? Math.round(duracoes.reduce((s,d) => s+d, 0) / duracoes.length) : null;
+  const totalComPrazo = dentroDoPrazo + foraDoPrazo;
+  const pctDentroPrazo = totalComPrazo ? Math.round((dentroDoPrazo / totalComPrazo) * 100) : null;
+
+  return { mediaDias, pctDentroPrazo, totalResolvidos: duracoes.length, totalComPrazo };
+}
+
+// Quantos ROS foram abertos e concluídos em cada mês (pro gráfico de barras).
+function buildRosMonthlySeries(){
+  const map = {};
+  allHistoricoRos.forEach(h => {
+    const d = new Date(h.timestamp);
+    if(isNaN(d.getTime())) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if(!map[key]) map[key] = { abertos: 0, concluidos: 0 };
+    if(!h.statusAnterior) map[key].abertos++;
+    if(isConcluido(h.statusNovo)) map[key].concluidos++;
+  });
+  return Object.keys(map).sort().map(k => ({ month: k, ...map[k] }));
+}
+
+function monthLabel(key){
+  const [y, m] = key.split('-');
+  const nomes = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return nomes[Number(m) - 1] + '/' + y.slice(2);
+}
+
+function renderRosMonthlyChart(series){
+  if(series.length === 0){
+    return '<div class="analysis-empty">Ainda não há histórico suficiente pra montar a evolução mensal.</div>';
+  }
+  const maxV = Math.max(1, ...series.map(s => Math.max(s.abertos, s.concluidos)));
+  const W = 560, H = 190, padL = 28, padR = 10, padT = 14, padB = 30;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const groupW = plotW / series.length;
+  const barW = Math.min(20, groupW / 3);
+
+  const bars = series.map((s, i) => {
+    const gx = padL + i * groupW + groupW / 2;
+    const hAberto = (s.abertos / maxV) * plotH;
+    const hConcluido = (s.concluidos / maxV) * plotH;
+    const xAberto = gx - barW - 2;
+    const xConcluido = gx + 2;
+    const yAberto = padT + plotH - hAberto;
+    const yConcluido = padT + plotH - hConcluido;
+    const label = monthLabel(s.month);
+    return `
+      <rect x="${xAberto.toFixed(1)}" y="${yAberto.toFixed(1)}" width="${barW}" height="${hAberto.toFixed(1)}" fill="#EF4444" rx="2"></rect>
+      <rect x="${xConcluido.toFixed(1)}" y="${yConcluido.toFixed(1)}" width="${barW}" height="${hConcluido.toFixed(1)}" fill="#22C55E" rx="2"></rect>
+      <text x="${gx.toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="#7FAFC2">${label}</text>
+    `;
+  }).join('');
+
+  return `
+    <div style="display:flex; gap:16px; font-size:11.5px; color:var(--muted); margin-bottom:8px; justify-content:center;">
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#EF4444;margin-right:5px;"></span>Abertos</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#22C55E;margin-right:5px;"></span>Concluídos</span>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
+      <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
+      ${bars}
+    </svg>
+  `;
+}
+
+// Quantas pessoas diferentes já abriram pelo menos um ROS (mais gente reportando =
+// mais maturidade/confiança da equipe, não o contrário).
+function buildRosParticipationStats(){
+  const todos = new Set(), filial = new Set(), matriz = new Set();
+  allRos.forEach(item => {
+    const nome = (item.abertoPor || '').trim().toLowerCase();
+    if(!nome) return;
+    todos.add(nome);
+    const unidade = (item.unidade || '').trim().toLowerCase();
+    if(unidade === 'filial') filial.add(nome);
+    if(unidade === 'matriz') matriz.add(nome);
+  });
+  return { total: todos.size, filial: filial.size, matriz: matriz.size };
+}
+
+function renderRosAnalise(){
+  const container = document.getElementById('rosAnaliseContent');
+  const resolucao = buildRosResolutionStats();
+  const mensal = buildRosMonthlySeries();
+  const participacao = buildRosParticipationStats();
+
+  container.innerHTML = `
+    <div class="analysis-section">
+      <h3>Tempo médio de resolução</h3>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">${resolucao.mediaDias !== null ? resolucao.mediaDias + ' dias' : '—'}</div>
+          <div class="stat-label">média entre abrir e concluir</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${resolucao.pctDentroPrazo !== null ? resolucao.pctDentroPrazo + '%' : '—'}</div>
+          <div class="stat-label">concluídos dentro do prazo</div>
+        </div>
+      </div>
+      <div class="analysis-note">Baseado em ${resolucao.totalResolvidos} ROS já concluído${resolucao.totalResolvidos === 1 ? '' : 's'} com histórico completo (abertura + conclusão registradas).</div>
+    </div>
+
+    <div class="analysis-section">
+      <h3>Evolução mensal</h3>
+      ${renderRosMonthlyChart(mensal)}
+    </div>
+
+    <div class="analysis-section">
+      <h3>Participação</h3>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">${participacao.total}</div>
+          <div class="stat-label">pessoas diferentes já reportaram um ROS</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${participacao.filial} / ${participacao.matriz}</div>
+          <div class="stat-label">Filial / Matriz</div>
+        </div>
+      </div>
+      <div class="analysis-note">Mais pessoas reportando é sinal positivo — indica que a equipe se sente à vontade pra apontar desvios.</div>
+    </div>
+  `;
+}
+
 document.getElementById('gearBtn').addEventListener('click', () => {
   rosBuffer = allRos.map(item => ({
     id: item.id,
@@ -1208,6 +1417,7 @@ document.getElementById('gearBtn').addEventListener('click', () => {
   }));
   drawRosForm();
   rosSaveNote.textContent = '';
+  showRosAdminTab('edit');
   rosOverlay.classList.add('show');
 });
 document.getElementById('rosCloseBtn').addEventListener('click', () => {
