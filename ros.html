@@ -360,6 +360,17 @@
   }
   .ros-add-btn:hover{color:var(--blue-light); border-color:var(--blue-light);}
   .ros-edit-empty{font-size:12px; color:var(--muted); text-align:center; padding:18px; font-style:italic;}
+
+  /* ---------- Seletor de idioma (discreto) ---------- */
+  .lang-switch{display:flex; align-items:center; gap:4px;}
+  .lang-btn{
+    width:28px; height:28px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(255,255,255,0.03); cursor:pointer; padding:0;
+    font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center;
+    opacity:0.55; filter:grayscale(40%); transition:opacity .2s ease, filter .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .lang-btn:hover{opacity:0.85; transform:translateY(-1px);}
+  .lang-btn.active{opacity:1; filter:none; border-color:var(--blue-light); box-shadow:0 0 0 1px rgba(107,208,247,0.3);}
 </style>
 </head>
 <body>
@@ -373,32 +384,37 @@
       </div>
     </div>
     <div class="campaign">
-      <h1>Painel HSE - ROS</h1>
-      <p>DESVIOS &amp; PLANOS DE AÇÃO</p>
+      <h1 data-i18n="ros_page_title">Painel HSE - ROS</h1>
+      <p data-i18n="ros_page_subtitle">DESVIOS &amp; PLANOS DE AÇÃO</p>
     </div>
     <div class="header-actions">
+      <div class="lang-switch">
+        <button type="button" class="lang-btn active" data-lang="pt" title="Português">🇧🇷</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English">🇺🇸</button>
+        <button type="button" class="lang-btn" data-lang="de" title="Deutsch">🇩🇪</button>
+      </div>
       <button type="button" class="back-btn ros-trend-header-btn" id="rosTrendBtn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 3v18h18"></path>
           <path d="M7 15l4-6 4 3 5-8"></path>
         </svg>
-        Tendência
+        <span data-i18n="trend_btn">Tendência</span>
       </button>
       <a class="back-btn" href="./index.html">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 12H5"></path>
           <path d="M12 19l-7-7 7-7"></path>
         </svg>
-        Voltar ao placar
+        <span data-i18n="back_to_board">Voltar ao placar</span>
       </a>
     </div>
   </header>
 
   <div class="tabs">
-    <div class="tab active" data-filter="abertos">Abertos <span class="tab-badge"><span class="tab-badge-dot aberto"></span><span id="countAbertos">0</span></span></div>
-    <div class="tab" data-filter="andamento">Em andamento <span class="tab-badge"><span class="tab-badge-dot andamento"></span><span id="countAndamento">0</span></span></div>
-    <div class="tab" data-filter="concluidos">Concluídos <span class="tab-badge"><span class="tab-badge-dot concluido"></span><span id="countConcluidos">0</span></span></div>
-    <div class="tab" data-filter="todos">Todos</div>
+    <div class="tab active" data-filter="abertos"><span data-i18n="tab_abertos">Abertos</span> <span class="tab-badge"><span class="tab-badge-dot aberto"></span><span id="countAbertos">0</span></span></div>
+    <div class="tab" data-filter="andamento"><span data-i18n="tab_andamento">Em andamento</span> <span class="tab-badge"><span class="tab-badge-dot andamento"></span><span id="countAndamento">0</span></span></div>
+    <div class="tab" data-filter="concluidos"><span data-i18n="tab_concluidos">Concluídos</span> <span class="tab-badge"><span class="tab-badge-dot concluido"></span><span id="countConcluidos">0</span></span></div>
+    <div class="tab" data-filter="todos" data-i18n="tab_todos">Todos</div>
   </div>
 
   <div class="ros-toolbar">
@@ -407,26 +423,26 @@
         <circle cx="11" cy="11" r="7"></circle>
         <path d="M21 21l-4.3-4.3"></path>
       </svg>
-      <input type="text" id="rosSearchInput" placeholder="Buscar por local, descrição, quem abriu...">
+      <input type="text" id="rosSearchInput" data-i18n-placeholder="search_placeholder" placeholder="Buscar por local, descrição, quem abriu...">
     </div>
     <div class="ros-unit-toggle">
-      <button type="button" class="ros-unit-btn active" data-unit="">Todas</button>
-      <button type="button" class="ros-unit-btn" data-unit="Filial">Filial</button>
-      <button type="button" class="ros-unit-btn" data-unit="Matriz">Matriz</button>
+      <button type="button" class="ros-unit-btn active" data-unit="" data-i18n="unit_all">Todas</button>
+      <button type="button" class="ros-unit-btn" data-unit="Filial" data-i18n="unit_filial">Filial</button>
+      <button type="button" class="ros-unit-btn" data-unit="Matriz" data-i18n="unit_matriz">Matriz</button>
     </div>
     <select class="ros-sort-select" id="rosSortSelect">
-      <option value="priority">Ordenar: Prioridade</option>
-      <option value="recent">Ordenar: Mais recentes</option>
+      <option value="priority" data-i18n="sort_priority">Ordenar: Prioridade</option>
+      <option value="recent" data-i18n="sort_recent">Ordenar: Mais recentes</option>
     </select>
     <button type="button" class="ros-meus-btn" id="rosMeusBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
       </svg>
-      <span id="rosMeusLabel">Meus ROS</span>
+      <span id="rosMeusLabel" data-i18n="my_ros">Meus ROS</span>
     </button>
     <div class="ros-view-toggle">
-      <button type="button" class="ros-view-btn active" id="rosViewCardsBtn" title="Ver em cards">
+      <button type="button" class="ros-view-btn active" id="rosViewCardsBtn" data-i18n-title="view_cards" title="Ver em cards">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
           <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
@@ -434,7 +450,7 @@
           <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
         </svg>
       </button>
-      <button type="button" class="ros-view-btn" id="rosViewListBtn" title="Ver em lista">
+      <button type="button" class="ros-view-btn" id="rosViewListBtn" data-i18n-title="view_list" title="Ver em lista">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 6h16"></path>
           <path d="M4 12h16"></path>
@@ -446,15 +462,15 @@
 
 
   <div id="rosGrid" class="ros-grid"></div>
-  <div id="emptyState" class="empty-state" style="display:none;">Nenhum ROS encontrado para esse filtro.</div>
+  <div id="emptyState" class="empty-state" style="display:none;" data-i18n="empty_default">Nenhum ROS encontrado para esse filtro.</div>
 
   <div class="footer-credit">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
       <path d="m9 12 2 2 4-4"></path>
     </svg>
-    <span>Segurança do Trabalho: <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
-    <div class="gear" id="gearBtn" title="Painel do administrador">⚙</div>
+    <span><span data-i18n="footer_credit_label">Segurança do Trabalho:</span> <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
+    <div class="gear" id="gearBtn" data-i18n-title="admin_panel_title" title="Painel do administrador">⚙</div>
   </div>
 
 </div>
@@ -469,47 +485,200 @@
 <div class="overlay" id="rosTrendOverlay">
   <div class="modal ros-trend-modal">
     <button class="ros-detail-close" id="rosTrendCloseBtn" aria-label="Fechar">✕</button>
-    <h2>Tendência de ROS</h2>
-    <div class="sub">Abertos vs. concluídos ao longo do tempo.</div>
+    <h2 data-i18n="trend_modal_title">Tendência de ROS</h2>
+    <div class="sub" data-i18n="trend_modal_sub">Abertos vs. concluídos ao longo do tempo.</div>
     <div id="rosTrendChart"></div>
   </div>
 </div>
 
 <div class="overlay" id="rosOverlay">
   <div class="modal">
-    <h2>Painel do administrador</h2>
+    <h2 data-i18n="admin_panel_title">Painel do administrador</h2>
     <div class="admin-tabs">
-      <button class="admin-tab active" id="rosAdminTabEdit">Editar ROS</button>
-      <button class="admin-tab" id="rosAdminTabAnalise">Análise</button>
+      <button class="admin-tab active" id="rosAdminTabEdit" data-i18n="tab_editar">Editar ROS</button>
+      <button class="admin-tab" id="rosAdminTabAnalise" data-i18n="tab_analise">Análise</button>
     </div>
 
     <div id="rosAdminPanelEdit">
-      <div class="sub">
+      <div class="sub" data-i18n="admin_edit_sub">
         Preencha os campos de cada ROS manualmente. Use os status e níveis de risco das listas — são eles que colorem
         o card certinho. O histórico de mudança de status é gerado sozinho: pra ele continuar reconhecendo o mesmo ROS
         entre uma atualização e outra, evite reescrever a Descrição ou o Aberto por depois de criado — só o Status pode
         mudar à vontade.
       </div>
       <div class="ros-edit-list" id="rosEditList"></div>
-      <button type="button" class="ros-add-btn" id="rosAddBtn">+ adicionar ROS</button>
+      <button type="button" class="ros-add-btn" id="rosAddBtn" data-i18n="modal_add">+ adicionar ROS</button>
       <div class="modal-actions">
-        <button class="btn-save" id="rosSaveBtn">Salvar e publicar</button>
-        <button class="btn-close" id="rosCloseBtn">Fechar</button>
+        <button class="btn-save" id="rosSaveBtn" data-i18n="modal_save">Salvar e publicar</button>
+        <button class="btn-close" id="rosCloseBtn" data-i18n="modal_close">Fechar</button>
       </div>
       <div class="save-note" id="rosSaveNote"></div>
     </div>
 
     <div id="rosAdminPanelAnalise" style="display:none;">
-      <div class="sub">Indicadores de maturidade calculados a partir do histórico de status dos ROS.</div>
+      <div class="sub" data-i18n="analise_sub">Indicadores de maturidade calculados a partir do histórico de status dos ROS.</div>
       <div id="rosAnaliseContent"></div>
       <div class="modal-actions">
-        <button class="btn-close" id="rosCloseBtnAnalise" style="flex:1;">Fechar</button>
+        <button class="btn-close" id="rosCloseBtnAnalise" style="flex:1;" data-i18n="modal_close">Fechar</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+/* ---------------- Idioma (PT / EN / DE) ---------------- */
+const I18N = {
+  pt: {
+    trend_btn:'Tendência', back_to_board:'Voltar ao placar',
+    ros_page_title:'Painel HSE - ROS', ros_page_subtitle:'DESVIOS & PLANOS DE AÇÃO',
+    tab_abertos:'Abertos', tab_andamento:'Em andamento', tab_concluidos:'Concluídos', tab_todos:'Todos',
+    search_placeholder:'Buscar por local, descrição, quem abriu...',
+    unit_all:'Todas', unit_filial:'Filial', unit_matriz:'Matriz',
+    sort_priority:'Ordenar: Prioridade', sort_recent:'Ordenar: Mais recentes',
+    my_ros:'Meus ROS', view_cards:'Ver em cards', view_list:'Ver em lista',
+    empty_default:'Nenhum ROS encontrado para esse filtro.', empty_filtered:'Nenhum ROS encontrado com esse filtro/busca.',
+    footer_credit_label:'Segurança do Trabalho:', admin_panel_title:'Painel do administrador',
+    trend_modal_title:'Tendência de ROS', trend_modal_sub:'Abertos vs. concluídos ao longo do tempo.',
+    field_descricao:'Descrição', field_aberto_por:'Aberto por', field_nivel_risco:'Nível de risco',
+    field_local:'Local', field_data_abertura:'Data de abertura', field_plano_acao:'Plano de ação',
+    field_responsavel:'Responsável pelo plano de ação', field_prazo:'Prazo para resolução',
+    field_historico:'Histórico de status', ver_detalhes:'Ver detalhes', ha:'há', dia:'dia', dias:'dias',
+    resolvido_em:'Resolvido em', atrasado:'ATRASADO', vence_hoje:'VENCE HOJE', vence_em:'VENCE EM',
+    nao_informado:'Não informado', sem_status:'Sem status', historico_vazio:'Sem mudanças de status registradas ainda.',
+    aberto_status_inicial:'Aberto (status inicial:', tab_editar:'Editar ROS', tab_analise:'Análise',
+    modal_close:'Fechar', modal_save:'Salvar e publicar', modal_add:'+ adicionar ROS',
+    status_aberto:'Aberto', status_andamento:'Em andamento', status_concluido:'Concluído',
+    risco_baixo:'Baixo', risco_medio:'Médio', risco_alto:'Alto',
+    edit_status:'Status', edit_risk:'Nível de risco', edit_local:'Local', edit_opened_by:'Aberto por',
+    edit_open_date:'Data de abertura', edit_deadline:'Prazo para resolução', edit_description:'Descrição',
+    edit_action_plan:'Plano de ação', edit_responsible:'Responsável pelo plano de ação',
+    edit_new_ros:'ROS novo', edit_remove:'🗑 remover', edit_not_informed:'Não informado', field_unidade:'Unidade',
+    ph_local:'Ex.: Setor de expedição', ph_opened_by:'Nome de quem abriu', ph_description:'O que foi encontrado',
+    ph_action:'O que será feito pra resolver', ph_responsible:'Quem vai executar',
+    admin_edit_sub:'Preencha os campos de cada ROS manualmente. Use os status e níveis de risco das listas — são eles que colorem o card certinho. O histórico de mudança de status é gerado sozinho: pra ele continuar reconhecendo o mesmo ROS entre uma atualização e outra, evite reescrever a Descrição ou o Aberto por depois de criado — só o Status pode mudar à vontade.',
+    edit_empty:'Nenhum ROS cadastrado ainda. Clique em "+ adicionar ROS" pra criar o primeiro.',
+    analise_sub:'Indicadores de maturidade calculados a partir do histórico de status dos ROS.',
+    analise_avg_resolution:'Tempo médio de resolução', analise_avg_label:'média entre abrir e concluir',
+    analise_deadline_pct_label:'concluídos dentro do prazo', analise_days_unit:'dias',
+    analise_based_on:(n,plural)=>`Baseado em ${n} ROS já concluído${plural?'s':''} com histórico completo (abertura + conclusão registradas).`,
+    analise_monthly:'Evolução mensal', analise_empty_monthly:'Ainda não há histórico suficiente pra montar a evolução mensal.',
+    analise_participation:'Participação', analise_people_reported:'pessoas diferentes já reportaram um ROS',
+    analise_participation_note:'Mais pessoas reportando é sinal positivo — indica que a equipe se sente à vontade pra apontar desvios.',
+    saving:'Salvando...', saved_ros:(n)=>`Salvo! ${n} ROS publicados.`, error_label:'Erro:', error_unknown:'falha desconhecida', error_connection:'Erro de conexão ao salvar.',
+    my_ros_prompt:'Qual o seu nome, exatamente como aparece em "Aberto por" nos ROS?',
+  },
+  en: {
+    trend_btn:'Trend', back_to_board:'Back to dashboard',
+    ros_page_title:'HSE Panel - Incident Reports', ros_page_subtitle:'DEVIATIONS & ACTION PLANS',
+    tab_abertos:'Open', tab_andamento:'In progress', tab_concluidos:'Completed', tab_todos:'All',
+    search_placeholder:'Search by location, description, reporter...',
+    unit_all:'All', unit_filial:'Branch', unit_matriz:'HQ',
+    sort_priority:'Sort: Priority', sort_recent:'Sort: Most recent',
+    my_ros:'My Reports', view_cards:'Card view', view_list:'List view',
+    empty_default:'No reports found for this filter.', empty_filtered:'No reports found for this filter/search.',
+    footer_credit_label:'Occupational Safety:', admin_panel_title:'Admin panel',
+    trend_modal_title:'Report Trend', trend_modal_sub:'Opened vs. completed over time.',
+    field_descricao:'Description', field_aberto_por:'Reported by', field_nivel_risco:'Risk level',
+    field_local:'Location', field_data_abertura:'Date opened', field_plano_acao:'Action plan',
+    field_responsavel:'Action plan owner', field_prazo:'Resolution deadline',
+    field_historico:'Status history', ver_detalhes:'View details', ha:'', dia:'day', dias:'days ago',
+    resolvido_em:'Resolved on', atrasado:'OVERDUE', vence_hoje:'DUE TODAY', vence_em:'DUE IN',
+    nao_informado:'Not informed', sem_status:'No status', historico_vazio:'No status changes recorded yet.',
+    aberto_status_inicial:'Opened (initial status:', tab_editar:'Edit Reports', tab_analise:'Analytics',
+    modal_close:'Close', modal_save:'Save and publish', modal_add:'+ add report',
+    status_aberto:'Open', status_andamento:'In progress', status_concluido:'Completed',
+    risco_baixo:'Low', risco_medio:'Medium', risco_alto:'High',
+    edit_status:'Status', edit_risk:'Risk level', edit_local:'Location', edit_opened_by:'Reported by',
+    edit_open_date:'Date opened', edit_deadline:'Resolution deadline', edit_description:'Description',
+    edit_action_plan:'Action plan', edit_responsible:'Action plan owner',
+    edit_new_ros:'New report', edit_remove:'🗑 remove', edit_not_informed:'Not informed', field_unidade:'Unit',
+    ph_local:'e.g.: Shipping area', ph_opened_by:'Reporter name', ph_description:'What was found',
+    ph_action:'What will be done to fix it', ph_responsible:'Who will execute it',
+    admin_edit_sub:'Fill in each report manually. Use the status and risk levels from the lists — they color the card correctly. Status change history is generated automatically: to keep recognizing the same report between updates, avoid rewriting the Description or Reported by after creation — only Status can change freely.',
+    edit_empty:'No reports registered yet. Click "+ add report" to create the first one.',
+    analise_sub:'Maturity indicators calculated from the reports\' status history.',
+    analise_avg_resolution:'Average resolution time', analise_avg_label:'average time to open and close',
+    analise_deadline_pct_label:'completed within deadline', analise_days_unit:'days',
+    analise_based_on:(n,plural)=>`Based on ${n} completed report${plural?'s':''} with full history (opening + completion recorded).`,
+    analise_monthly:'Monthly evolution', analise_empty_monthly:'Not enough history yet to build the monthly evolution.',
+    analise_participation:'Participation', analise_people_reported:'different people have reported at least one incident',
+    analise_participation_note:'More people reporting is a positive sign — it shows the team feels comfortable flagging deviations.',
+    saving:'Saving...', saved_ros:(n)=>`Saved! ${n} report${n===1?'':'s'} published.`, error_label:'Error:', error_unknown:'unknown failure', error_connection:'Connection error while saving.',
+    my_ros_prompt:'What\'s your name, exactly as it appears in "Reported by" on reports?',
+  },
+  de: {
+    trend_btn:'Trend', back_to_board:'Zurück zum Dashboard',
+    ros_page_title:'HSE-Panel - Vorfallmeldungen', ros_page_subtitle:'ABWEICHUNGEN & MASSNAHMENPLÄNE',
+    tab_abertos:'Offen', tab_andamento:'In Bearbeitung', tab_concluidos:'Abgeschlossen', tab_todos:'Alle',
+    search_placeholder:'Suche nach Ort, Beschreibung, Melder...',
+    unit_all:'Alle', unit_filial:'Zweigstelle', unit_matriz:'Hauptsitz',
+    sort_priority:'Sortieren: Priorität', sort_recent:'Sortieren: Neueste',
+    my_ros:'Meine Meldungen', view_cards:'Kartenansicht', view_list:'Listenansicht',
+    empty_default:'Keine Meldungen für diesen Filter gefunden.', empty_filtered:'Keine Meldungen für diesen Filter/Suche gefunden.',
+    footer_credit_label:'Arbeitssicherheit:', admin_panel_title:'Admin-Panel',
+    trend_modal_title:'Meldungstrend', trend_modal_sub:'Eröffnet vs. abgeschlossen im Zeitverlauf.',
+    field_descricao:'Beschreibung', field_aberto_por:'Gemeldet von', field_nivel_risco:'Risikostufe',
+    field_local:'Ort', field_data_abertura:'Eröffnungsdatum', field_plano_acao:'Maßnahmenplan',
+    field_responsavel:'Verantwortlich für Maßnahmenplan', field_prazo:'Frist zur Lösung',
+    field_historico:'Statusverlauf', ver_detalhes:'Details anzeigen', ha:'vor', dia:'Tag', dias:'Tagen',
+    resolvido_em:'Gelöst am', atrasado:'ÜBERFÄLLIG', vence_hoje:'HEUTE FÄLLIG', vence_em:'FÄLLIG IN',
+    nao_informado:'Nicht angegeben', sem_status:'Kein Status', historico_vazio:'Noch keine Statusänderungen erfasst.',
+    aberto_status_inicial:'Eröffnet (Anfangsstatus:', tab_editar:'Meldungen bearbeiten', tab_analise:'Analyse',
+    modal_close:'Schließen', modal_save:'Speichern und veröffentlichen', modal_add:'+ Meldung hinzufügen',
+    status_aberto:'Offen', status_andamento:'In Bearbeitung', status_concluido:'Abgeschlossen',
+    risco_baixo:'Niedrig', risco_medio:'Mittel', risco_alto:'Hoch',
+    edit_status:'Status', edit_risk:'Risikostufe', edit_local:'Ort', edit_opened_by:'Gemeldet von',
+    edit_open_date:'Eröffnungsdatum', edit_deadline:'Frist zur Lösung', edit_description:'Beschreibung',
+    edit_action_plan:'Maßnahmenplan', edit_responsible:'Verantwortlich für Maßnahmenplan',
+    edit_new_ros:'Neue Meldung', edit_remove:'🗑 entfernen', edit_not_informed:'Nicht angegeben', field_unidade:'Einheit',
+    ph_local:'z. B.: Versandbereich', ph_opened_by:'Name des Melders', ph_description:'Was festgestellt wurde',
+    ph_action:'Was zur Behebung getan wird', ph_responsible:'Wer es ausführen wird',
+    admin_edit_sub:'Füllen Sie die Felder jeder Meldung manuell aus. Verwenden Sie die Status- und Risikostufen aus den Listen — sie färben die Karte korrekt ein. Der Statusverlauf wird automatisch erstellt: Damit dieselbe Meldung zwischen Aktualisierungen weiterhin erkannt wird, vermeiden Sie es, die Beschreibung oder "Gemeldet von" nach der Erstellung zu ändern — nur der Status kann frei geändert werden.',
+    edit_empty:'Noch keine Meldungen erfasst. Klicken Sie auf "+ Meldung hinzufügen", um die erste zu erstellen.',
+    analise_sub:'Reifegrad-Indikatoren, berechnet aus dem Statusverlauf der Meldungen.',
+    analise_avg_resolution:'Durchschnittliche Lösungszeit', analise_avg_label:'durchschnittliche Zeit von Eröffnung bis Abschluss',
+    analise_deadline_pct_label:'innerhalb der Frist abgeschlossen', analise_days_unit:'Tage',
+    analise_based_on:(n,plural)=>`Basierend auf ${n} abgeschlossene${plural?'n':'r'} Meldung${plural?'en':''} mit vollständigem Verlauf (Eröffnung + Abschluss erfasst).`,
+    analise_monthly:'Monatliche Entwicklung', analise_empty_monthly:'Noch nicht genug Verlauf, um die monatliche Entwicklung darzustellen.',
+    analise_participation:'Beteiligung', analise_people_reported:'verschiedene Personen haben mindestens eine Meldung erstattet',
+    analise_participation_note:'Mehr Meldungen von mehr Personen sind ein positives Zeichen — es zeigt, dass sich das Team wohlfühlt, Abweichungen zu melden.',
+    saving:'Wird gespeichert...', saved_ros:(n)=>`Gespeichert! ${n} Meldung${n===1?'':'en'} veröffentlicht.`, error_label:'Fehler:', error_unknown:'unbekannter Fehler', error_connection:'Verbindungsfehler beim Speichern.',
+    my_ros_prompt:'Wie lautet Ihr Name, genau wie er bei "Gemeldet von" in den Meldungen erscheint?',
+  }
+};
+let currentLang = localStorage.getItem('campanhaLang') || 'pt';
+function t(key){
+  return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.pt && I18N.pt[key]) || key;
+}
+// Pra textos com número variável (ex.: "Baseado em X ROS...") — a chave guarda uma
+// função em vez de um texto fixo, porque a ordem das palavras muda entre idiomas.
+function tf(key, ...args){
+  const fn = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.pt && I18N.pt[key]);
+  return typeof fn === 'function' ? fn(...args) : (fn || key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
+  document.documentElement.lang = currentLang === 'pt' ? 'pt-BR' : currentLang;
+}
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('campanhaLang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  applyI18n();
+  if(typeof renderRos === 'function') renderRos();
+  const analisePanel = document.getElementById('rosAdminPanelAnalise');
+  if(analisePanel && analisePanel.style.display !== 'none' && typeof renderRosAnalise === 'function') renderRosAnalise();
+  const editPanel = document.getElementById('rosAdminPanelEdit');
+  if(editPanel && editPanel.style.display !== 'none' && typeof drawRosForm === 'function') drawRosForm();
+}
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLang(btn.dataset.lang));
+});
+document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+applyI18n();
+
 const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
 if(!ADMIN_MODE){
   const gearEl = document.getElementById('gearBtn');
@@ -534,6 +703,24 @@ function statusClass(status){
   if(s === 'em andamento' || s === 'andamento') return 'status-andamento';
   if(s === 'concluído' || s === 'concluido' || s === 'fechado') return 'status-concluido';
   return 'status-outro';
+}
+
+// O valor salvo na planilha continua sempre em português (Aberto/Em andamento/
+// Concluído) — essa função só decide o texto MOSTRADO, no idioma ativo.
+function statusLabel(status){
+  const s = (status || '').trim().toLowerCase();
+  if(s === 'aberto') return t('status_aberto');
+  if(s === 'em andamento' || s === 'andamento') return t('status_andamento');
+  if(s === 'concluído' || s === 'concluido' || s === 'fechado') return t('status_concluido');
+  return status || t('sem_status');
+}
+
+function riskLabel(nivel){
+  const n = (nivel || '').trim().toLowerCase();
+  if(n === 'alto') return t('risco_alto');
+  if(n === 'médio' || n === 'medio') return t('risco_medio');
+  if(n === 'baixo') return t('risco_baixo');
+  return t('nao_informado');
 }
 
 function isConcluido(status){
@@ -610,10 +797,18 @@ function diasParaVencer(item){
 }
 
 function prazoTagHtml(item){
-  if(isAtrasado(item)) return '<span class="ros-overdue">ATRASADO</span>';
+  if(isAtrasado(item)) return `<span class="ros-overdue">${t('atrasado')}</span>`;
   const dias = diasParaVencer(item);
   if(dias === null) return '';
-  return `<span class="ros-soon">${dias === 0 ? 'VENCE HOJE' : 'VENCE EM ' + dias + 'D'}</span>`;
+  return `<span class="ros-soon">${dias === 0 ? t('vence_hoje') : t('vence_em') + ' ' + dias + (currentLang==='de'?'T':'D')}</span>`;
+}
+
+// Texto "há X dias" no idioma certo (a ordem das palavras muda entre os idiomas,
+// por isso é uma frase pronta em vez de só trocar peças dentro do mesmo molde).
+function daysAgoText(dias){
+  if(currentLang === 'de') return `vor ${dias} ${dias === 1 ? 'Tag' : 'Tagen'}`;
+  if(currentLang === 'en') return `${dias} day${dias === 1 ? '' : 's'} ago`;
+  return `há ${dias} dia${dias === 1 ? '' : 's'}`;
 }
 
 // Prioridade: atrasados primeiro, depois quem vence em breve, depois o resto em
@@ -685,15 +880,15 @@ function historyHtmlFor(item){
     .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
 
   if(entries.length === 0){
-    return '<div class="ros-history-empty">Sem mudanças de status registradas ainda.</div>';
+    return `<div class="ros-history-empty">${t('historico_vazio')}</div>`;
   }
 
   const fmt = iso => { const d = new Date(iso); return isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }); };
 
   return '<div class="ros-history">' + entries.map(h => {
     const texto = h.statusAnterior
-      ? `${escapeHtml(h.statusAnterior) || 'Sem status'} → ${escapeHtml(h.statusNovo) || 'Sem status'}`
-      : `Aberto (status inicial: ${escapeHtml(h.statusNovo) || 'Sem status'})`;
+      ? `${escapeHtml(statusLabel(h.statusAnterior))} → ${escapeHtml(statusLabel(h.statusNovo))}`
+      : `${t('aberto_status_inicial')} ${escapeHtml(statusLabel(h.statusNovo))})`;
     return `<div class="ros-history-item"><span class="ros-history-date">${fmt(h.timestamp)}</span><span>${texto}</span></div>`;
   }).join('') + '</div>';
 }
@@ -736,8 +931,8 @@ function renderRos(){
     grid.innerHTML = '';
     empty.style.display = 'block';
     empty.textContent = (searchQuery || meuNomeFilter || unitFilter)
-      ? 'Nenhum ROS encontrado com esse filtro/busca.'
-      : 'Nenhum ROS encontrado para esse filtro.';
+      ? t('empty_filtered')
+      : t('empty_default');
     return;
   }
   empty.style.display = 'none';
@@ -762,31 +957,30 @@ function rosCardHtml(item){
           <span class="ros-num">ROS #${item.id}</span>
           ${item.unidade ? `<span class="ros-unit-tag">${escapeHtml(item.unidade)}</span>` : ''}
         </div>
-        <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
+        <span class="ros-status ${statusClass(item.status)}">${escapeHtml(statusLabel(item.status))}</span>
       </div>
       <div>
-        <div class="ros-field-label">Descrição</div>
+        <div class="ros-field-label">${t('field_descricao')}</div>
         <div class="ros-field-value">${escapeHtml(item.descricao) || '—'}</div>
       </div>
-      <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· há ${dias} dia${dias === 1 ? '' : 's'}</span>` : ''}</div>
-      ${resolvido ? `<div class="ros-resolved-tag">✓ Resolvido em ${resolvido}</div>` : (prazoTagHtml(item) ? `<div>${prazoTagHtml(item)}</div>` : '')}
+      <div class="ros-openedby">${t('field_aberto_por')}: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· ${daysAgoText(dias)}</span>` : ''}</div>
+      ${resolvido ? `<div class="ros-resolved-tag">✓ ${t('resolvido_em')} ${resolvido}</div>` : (prazoTagHtml(item) ? `<div>${prazoTagHtml(item)}</div>` : '')}
 
       <div class="ros-expand-hint">
         <svg class="ros-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 18l6-6-6-6"></path>
         </svg>
-        <span>Ver detalhes</span>
+        <span>${t('ver_detalhes')}</span>
       </div>
     </div>
   `;
 }
 
 function rosListRowHtml(item){
-  const atrasado = isAtrasado(item);
   return `
     <div class="ros-list-row ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
       <div class="ros-list-cell muted">${escapeHtml(item.unidade) || '—'}</div>
-      <div class="ros-list-cell"><span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span></div>
+      <div class="ros-list-cell"><span class="ros-status ${statusClass(item.status)}">${escapeHtml(statusLabel(item.status))}</span></div>
       <div class="ros-list-cell">${escapeHtml(item.local) || '—'}</div>
       <div class="ros-list-cell">${escapeHtml(item.descricao) || '—'}</div>
       <div class="ros-list-cell muted">${escapeHtml(item.abertoPor) || '—'}</div>
@@ -798,7 +992,6 @@ function rosListRowHtml(item){
 // Monta o conteúdo do modal de detalhes (aberto ao clicar num card) — não afeta
 // o tamanho dos outros cards, já que é uma janela separada, sobreposta.
 function rosDetailBodyHtml(item){
-  const atrasado = isAtrasado(item);
   const dias = diasEmAberto(item);
   const resolvido = dataConclusaoFor(item);
   return `
@@ -813,41 +1006,41 @@ function rosDetailBodyHtml(item){
           </svg>
         </button>
       </div>
-      <span class="ros-status ${statusClass(item.status)}">${escapeHtml(item.status || 'Sem status')}</span>
+      <span class="ros-status ${statusClass(item.status)}">${escapeHtml(statusLabel(item.status))}</span>
     </div>
     <div class="ros-detail-fields">
       <div>
-        <div class="ros-field-label">Descrição</div>
+        <div class="ros-field-label">${t('field_descricao')}</div>
         <div class="ros-field-value">${escapeHtml(item.descricao) || '—'}</div>
       </div>
-      <div class="ros-openedby">Aberto por: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· há ${dias} dia${dias === 1 ? '' : 's'}</span>` : ''}</div>
-      ${resolvido ? `<div class="ros-resolved-tag">✓ Resolvido em ${resolvido}</div>` : ''}
+      <div class="ros-openedby">${t('field_aberto_por')}: ${escapeHtml(item.abertoPor) || '—'}${dias !== null ? ` <span class="ros-daysopen">· ${daysAgoText(dias)}</span>` : ''}</div>
+      ${resolvido ? `<div class="ros-resolved-tag">✓ ${t('resolvido_em')} ${resolvido}</div>` : ''}
       <div>
-        <div class="ros-field-label">Nível de risco</div>
-        <div class="ros-risk-tag"><span class="ros-risk-dot ${riskDotClass(item.nivelRisco)}"></span>${escapeHtml(item.nivelRisco) || 'Não informado'}</div>
+        <div class="ros-field-label">${t('field_nivel_risco')}</div>
+        <div class="ros-risk-tag"><span class="ros-risk-dot ${riskDotClass(item.nivelRisco)}"></span>${escapeHtml(riskLabel(item.nivelRisco))}</div>
       </div>
       <div>
-        <div class="ros-field-label">Local</div>
+        <div class="ros-field-label">${t('field_local')}</div>
         <div class="ros-field-value">${escapeHtml(item.local) || '—'}</div>
       </div>
       <div>
-        <div class="ros-field-label">Data de abertura</div>
+        <div class="ros-field-label">${t('field_data_abertura')}</div>
         <div class="ros-field-value">${escapeHtml(item.dataAbertura) || '—'}</div>
       </div>
       <div>
-        <div class="ros-field-label">Plano de ação</div>
+        <div class="ros-field-label">${t('field_plano_acao')}</div>
         <div class="ros-field-value">${escapeHtml(item.planoAcao) || '—'}</div>
       </div>
       <div>
-        <div class="ros-field-label">Responsável pelo plano de ação</div>
+        <div class="ros-field-label">${t('field_responsavel')}</div>
         <div class="ros-field-value">${escapeHtml(item.responsavelPlano) || '—'}</div>
       </div>
       <div>
-        <div class="ros-field-label">Prazo para resolução</div>
+        <div class="ros-field-label">${t('field_prazo')}</div>
         <div class="ros-field-value">${escapeHtml(item.prazo) || '—'}${prazoTagHtml(item)}</div>
       </div>
       <div>
-        <div class="ros-field-label">Histórico de status</div>
+        <div class="ros-field-label">${t('field_historico')}</div>
         ${historyHtmlFor(item)}
       </div>
     </div>
@@ -976,7 +1169,7 @@ document.getElementById('rosMeusBtn').addEventListener('click', () => {
     meuNomeFilter = '';
     localStorage.removeItem('rosMeuNome');
   } else {
-    const nome = prompt('Qual o seu nome, exatamente como aparece em "Aberto por" nos ROS?');
+    const nome = prompt(t('my_ros_prompt'));
     if(!nome || !nome.trim()) return;
     meuNomeFilter = nome.trim();
     localStorage.setItem('rosMeuNome', meuNomeFilter);
@@ -1140,59 +1333,59 @@ function blankRosEntry(){
 }
 
 function rosEditCardHtml(i, item){
-  const unidadeOpts = [['', 'Não informado'], ['Filial','Filial'], ['Matriz','Matriz']].map(([v,l]) =>
+  const unidadeOpts = [['', t('edit_not_informed')], ['Filial', t('unit_filial')], ['Matriz', t('unit_matriz')]].map(([v,l]) =>
     `<option value="${v}" ${item.unidade === v ? 'selected' : ''}>${l}</option>`).join('');
-  const statusOpts = ['Aberto', 'Em andamento', 'Concluído'].map(s =>
-    `<option value="${s}" ${item.status === s ? 'selected' : ''}>${s}</option>`).join('');
-  const riscoOpts = [['', 'Não informado'], ['Baixo','Baixo'], ['Médio','Médio'], ['Alto','Alto']].map(([v,l]) =>
+  const statusOpts = [['Aberto', t('status_aberto')], ['Em andamento', t('status_andamento')], ['Concluído', t('status_concluido')]].map(([v,l]) =>
+    `<option value="${v}" ${item.status === v ? 'selected' : ''}>${l}</option>`).join('');
+  const riscoOpts = [['', t('edit_not_informed')], ['Baixo', t('risco_baixo')], ['Médio', t('risco_medio')], ['Alto', t('risco_alto')]].map(([v,l]) =>
     `<option value="${v}" ${item.nivelRisco === v ? 'selected' : ''}>${l}</option>`).join('');
 
   return `
   <div class="ros-edit-card">
     <div class="ros-edit-card-header">
-      <span class="ros-edit-card-title">${item.id ? 'ROS #' + item.id : 'ROS novo'}</span>
-      <button type="button" class="ros-edit-remove" data-remove="${i}">🗑 remover</button>
+      <span class="ros-edit-card-title">${item.id ? 'ROS #' + item.id : t('edit_new_ros')}</span>
+      <button type="button" class="ros-edit-remove" data-remove="${i}">${t('edit_remove')}</button>
     </div>
     <div class="ros-edit-grid">
       <div class="ros-edit-field">
-        <label>Unidade</label>
+        <label>${t('field_unidade')}</label>
         <select data-idx="${i}" data-field="unidade">${unidadeOpts}</select>
       </div>
       <div class="ros-edit-field">
-        <label>Status</label>
+        <label>${t('edit_status')}</label>
         <select data-idx="${i}" data-field="status">${statusOpts}</select>
       </div>
       <div class="ros-edit-field">
-        <label>Nível de risco</label>
+        <label>${t('edit_risk')}</label>
         <select data-idx="${i}" data-field="nivelRisco">${riscoOpts}</select>
       </div>
       <div class="ros-edit-field">
-        <label>Local</label>
-        <input type="text" data-idx="${i}" data-field="local" value="${escapeAttr(item.local)}" placeholder="Ex.: Setor de expedição">
+        <label>${t('edit_local')}</label>
+        <input type="text" data-idx="${i}" data-field="local" value="${escapeAttr(item.local)}" placeholder="${t('ph_local')}">
       </div>
       <div class="ros-edit-field">
-        <label>Aberto por</label>
-        <input type="text" data-idx="${i}" data-field="abertoPor" value="${escapeAttr(item.abertoPor)}" placeholder="Nome de quem abriu">
+        <label>${t('edit_opened_by')}</label>
+        <input type="text" data-idx="${i}" data-field="abertoPor" value="${escapeAttr(item.abertoPor)}" placeholder="${t('ph_opened_by')}">
       </div>
       <div class="ros-edit-field">
-        <label>Data de abertura</label>
+        <label>${t('edit_open_date')}</label>
         <input type="date" data-idx="${i}" data-field="dataAbertura" value="${escapeAttr(item.dataAbertura)}">
       </div>
       <div class="ros-edit-field">
-        <label>Prazo para resolução</label>
+        <label>${t('edit_deadline')}</label>
         <input type="date" data-idx="${i}" data-field="prazo" value="${escapeAttr(item.prazo)}">
       </div>
       <div class="ros-edit-field full">
-        <label>Descrição</label>
-        <textarea data-idx="${i}" data-field="descricao" placeholder="O que foi encontrado">${escapeHtml(item.descricao)}</textarea>
+        <label>${t('edit_description')}</label>
+        <textarea data-idx="${i}" data-field="descricao" placeholder="${t('ph_description')}">${escapeHtml(item.descricao)}</textarea>
       </div>
       <div class="ros-edit-field full">
-        <label>Plano de ação</label>
-        <textarea data-idx="${i}" data-field="planoAcao" placeholder="O que será feito pra resolver">${escapeHtml(item.planoAcao)}</textarea>
+        <label>${t('edit_action_plan')}</label>
+        <textarea data-idx="${i}" data-field="planoAcao" placeholder="${t('ph_action')}">${escapeHtml(item.planoAcao)}</textarea>
       </div>
       <div class="ros-edit-field full">
-        <label>Responsável pelo plano de ação</label>
-        <input type="text" data-idx="${i}" data-field="responsavelPlano" value="${escapeAttr(item.responsavelPlano)}" placeholder="Quem vai executar">
+        <label>${t('edit_responsible')}</label>
+        <input type="text" data-idx="${i}" data-field="responsavelPlano" value="${escapeAttr(item.responsavelPlano)}" placeholder="${t('ph_responsible')}">
       </div>
     </div>
   </div>`;
@@ -1200,7 +1393,7 @@ function rosEditCardHtml(i, item){
 
 function drawRosForm(){
   if(rosBuffer.length === 0){
-    rosEditList.innerHTML = '<div class="ros-edit-empty">Nenhum ROS cadastrado ainda. Clique em "+ adicionar ROS" pra criar o primeiro.</div>';
+    rosEditList.innerHTML = `<div class="ros-edit-empty">${t('edit_empty')}</div>`;
     return;
   }
   rosEditList.innerHTML = rosBuffer.map((item, i) => rosEditCardHtml(i, item)).join('');
@@ -1306,7 +1499,7 @@ function monthLabel(key){
 
 function renderRosMonthlyChart(series){
   if(series.length === 0){
-    return '<div class="analysis-empty">Ainda não há histórico suficiente pra montar a evolução mensal.</div>';
+    return `<div class="analysis-empty">${t('analise_empty_monthly')}</div>`;
   }
   const maxV = Math.max(1, ...series.map(s => Math.max(s.abertos, s.concluidos)));
   const W = 560, H = 190, padL = 28, padR = 10, padT = 14, padB = 30;
@@ -1332,8 +1525,8 @@ function renderRosMonthlyChart(series){
 
   return `
     <div style="display:flex; gap:16px; font-size:11.5px; color:var(--muted); margin-bottom:8px; justify-content:center;">
-      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#EF4444;margin-right:5px;"></span>Abertos</span>
-      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#22C55E;margin-right:5px;"></span>Concluídos</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#EF4444;margin-right:5px;"></span>${t('status_aberto')}</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#22C55E;margin-right:5px;"></span>${t('status_concluido')}</span>
     </div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
       <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
@@ -1365,38 +1558,38 @@ function renderRosAnalise(){
 
   container.innerHTML = `
     <div class="analysis-section">
-      <h3>Tempo médio de resolução</h3>
+      <h3>${t('analise_avg_resolution')}</h3>
       <div class="stat-grid">
         <div class="stat-card">
-          <div class="stat-value">${resolucao.mediaDias !== null ? resolucao.mediaDias + ' dias' : '—'}</div>
-          <div class="stat-label">média entre abrir e concluir</div>
+          <div class="stat-value">${resolucao.mediaDias !== null ? resolucao.mediaDias + ' ' + t('analise_days_unit') : '—'}</div>
+          <div class="stat-label">${t('analise_avg_label')}</div>
         </div>
         <div class="stat-card">
           <div class="stat-value">${resolucao.pctDentroPrazo !== null ? resolucao.pctDentroPrazo + '%' : '—'}</div>
-          <div class="stat-label">concluídos dentro do prazo</div>
+          <div class="stat-label">${t('analise_deadline_pct_label')}</div>
         </div>
       </div>
-      <div class="analysis-note">Baseado em ${resolucao.totalResolvidos} ROS já concluído${resolucao.totalResolvidos === 1 ? '' : 's'} com histórico completo (abertura + conclusão registradas).</div>
+      <div class="analysis-note">${tf('analise_based_on', resolucao.totalResolvidos, resolucao.totalResolvidos !== 1)}</div>
     </div>
 
     <div class="analysis-section">
-      <h3>Evolução mensal</h3>
+      <h3>${t('analise_monthly')}</h3>
       ${renderRosMonthlyChart(mensal)}
     </div>
 
     <div class="analysis-section">
-      <h3>Participação</h3>
+      <h3>${t('analise_participation')}</h3>
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-value">${participacao.total}</div>
-          <div class="stat-label">pessoas diferentes já reportaram um ROS</div>
+          <div class="stat-label">${t('analise_people_reported')}</div>
         </div>
         <div class="stat-card">
           <div class="stat-value">${participacao.filial} / ${participacao.matriz}</div>
-          <div class="stat-label">Filial / Matriz</div>
+          <div class="stat-label">${t('unit_filial')} / ${t('unit_matriz')}</div>
         </div>
       </div>
-      <div class="analysis-note">Mais pessoas reportando é sinal positivo — indica que a equipe se sente à vontade pra apontar desvios.</div>
+      <div class="analysis-note">${t('analise_participation_note')}</div>
     </div>
   `;
 }
@@ -1441,7 +1634,7 @@ document.getElementById('rosSaveBtn').addEventListener('click', async () => {
     responsavelPlano: item.responsavelPlano,
     prazo: isoToBr(item.prazo)
   }));
-  rosSaveNote.textContent = 'Salvando...';
+  rosSaveNote.textContent = t('saving');
   try{
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -1449,14 +1642,14 @@ document.getElementById('rosSaveBtn').addEventListener('click', async () => {
     });
     const data = await res.json();
     if(data.ok){
-      rosSaveNote.textContent = `Salvo! ${rows.length} ROS publicados.`;
+      rosSaveNote.textContent = tf('saved_ros', rows.length);
       await loadRos();
       setTimeout(() => { rosOverlay.classList.remove('show'); }, 900);
     } else {
-      rosSaveNote.textContent = 'Erro: ' + (data.error || 'falha desconhecida');
+      rosSaveNote.textContent = t('error_label') + ' ' + (data.error || t('error_unknown'));
     }
   }catch(err){
-    rosSaveNote.textContent = 'Erro de conexão ao salvar.';
+    rosSaveNote.textContent = t('error_connection');
   }
 });
 </script>

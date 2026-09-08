@@ -49,6 +49,9 @@
     font-family:'Inter',sans-serif;
     overflow-x:hidden;
   }
+  /* Trava a rolagem da página enquanto a tela de abertura está visível — assim,
+     nada (nem o painel de dias crescendo) pode gerar barra de rolagem nesse meio-tempo. */
+  body.splash-lock{overflow:hidden;}
   /* textura industrial sutil */
   body::before{
     content:"";
@@ -135,6 +138,16 @@
   }
   .campaign p{margin:4px 0 0; color:var(--muted); font-size:14px; letter-spacing:1.5px;}
 
+  .header-right{display:flex; align-items:center; gap:14px;}
+  .lang-switch{display:flex; align-items:center; gap:4px;}
+  .lang-btn{
+    width:28px; height:28px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(255,255,255,0.03); cursor:pointer; padding:0;
+    font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center;
+    opacity:0.55; filter:grayscale(40%); transition:opacity .2s ease, filter .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .lang-btn:hover{opacity:0.85; transform:translateY(-1px);}
+  .lang-btn.active{opacity:1; filter:none; border-color:var(--blue-light); box-shadow:0 0 0 1px rgba(107,208,247,0.3);}
   .clock{text-align:right; font-family:'Oswald',sans-serif; min-width:140px;}
   .clock .time{font-size:22px; font-weight:600; color:var(--blue-light);}
   .clock .date{font-size:12px; color:var(--muted); margin-top:2px;}
@@ -603,13 +616,17 @@
     transition:opacity .6s ease, visibility .6s ease;
   }
   .splash.hide{opacity:0; visibility:hidden; pointer-events:none;}
-  /* Bloco do topo: sua posição/centralização depende só do próprio conteúdo dele
-     (logo+título+subtítulo) — o painel de dias fica fora desse cálculo (posicionado
-     de forma absoluta logo abaixo), então nada aqui se move quando ele aparece. */
+  /* Bloco do topo: fica parado durante toda a espera inicial (nada se move de
+     repente). Só quando o painel de dias É revelado, ele sobe um pouquinho — de
+     forma suave e no mesmo ritmo do painel crescendo — pra o conjunto inteiro
+     (topo + painel) ficar bem centralizado, em vez de sobrar espaço embaixo. */
   .splash-top{
     position:relative;
     display:flex; flex-direction:column; align-items:center; gap:16px;
+    transform:translateY(0);
+    transition:transform .9s cubic-bezier(.22,1,.36,1);
   }
+  .splash-top.has-days-banner{transform:translateY(-58px);}
   .splash-logo{
     animation:splashIn .8s cubic-bezier(.22,1,.36,1) both;
   }
@@ -671,6 +688,7 @@
   }
   @media (prefers-reduced-motion:reduce){
     .splash-logo, .splash-title, .splash-sub{animation:none;}
+    .splash-top{transition:none;}
     .splash-days-wrap{transition:none;}
     .splash-days-banner{transition:none; animation:none;}
   }
@@ -682,14 +700,14 @@
   }
 </style>
 </head>
-<body>
+<body class="splash-lock">
 <div class="splash" id="splash">
   <div class="splash-top">
     <div class="splash-logo">
       <img src="./assets/logo-beumer.png" alt="Beumer Group">
     </div>
-    <div class="splash-title">Nosso Time Bate um Bolão</div>
-    <div class="splash-sub">Campanha de Segurança do Trabalho</div>
+    <div class="splash-title" data-i18n="board_title">Nosso Time Bate um Bolão</div>
+    <div class="splash-sub" data-i18n="board_subtitle_cap">Campanha de Segurança do Trabalho</div>
     <div class="splash-days-wrap" id="splashDaysWrap">
       <div class="splash-days-inner">
         <div class="splash-days-banner" id="splashDaysBanner">
@@ -698,9 +716,9 @@
             <path d="m9 12 2 2 4-4"></path>
           </svg>
           <div class="days-banner-text">
-            <span class="days-label">Estamos há</span>
+            <span class="days-label" data-i18n="days_since_prefix">Estamos há</span>
             <span class="days-number" id="daysNumber">0</span>
-            <span class="days-label">dias sem acidentes de trabalho</span>
+            <span class="days-label" data-i18n="days_since_suffix">dias sem acidentes de trabalho</span>
           </div>
         </div>
       </div>
@@ -724,19 +742,26 @@
       </a>
     </div>
     <div class="campaign">
-      <h1>Nosso Time Bate um Bolão</h1>
-      <p>CAMPANHA DE SEGURANÇA DO TRABALHO</p>
+      <h1 data-i18n="board_title">Nosso Time Bate um Bolão</h1>
+      <p data-i18n="board_subtitle">CAMPANHA DE SEGURANÇA DO TRABALHO</p>
     </div>
-    <div class="clock">
-      <div class="time" id="clockTime">--:--:--</div>
-      <div class="date" id="clockDate">-</div>
+    <div class="header-right">
+      <div class="lang-switch">
+        <button type="button" class="lang-btn active" data-lang="pt" title="Português">🇧🇷</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English">🇺🇸</button>
+        <button type="button" class="lang-btn" data-lang="de" title="Deutsch">🇩🇪</button>
+      </div>
+      <div class="clock">
+        <div class="time" id="clockTime">--:--:--</div>
+        <div class="date" id="clockDate">-</div>
+      </div>
     </div>
   </header>
 
   <div class="tabs">
-    <div class="tab active" data-unit="filial">Filial</div>
-    <div class="tab" data-unit="matriz">Matriz</div>
-    <div class="tab" data-unit="geral">Geral</div>
+    <div class="tab active" data-unit="filial" data-i18n="tab_filial">Filial</div>
+    <div class="tab" data-unit="matriz" data-i18n="tab_matriz">Matriz</div>
+    <div class="tab" data-unit="geral" data-i18n="tab_geral">Geral</div>
   </div>
 
   <div class="search-row">
@@ -745,24 +770,24 @@
         <circle cx="11" cy="11" r="7"></circle>
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
-      <input type="text" id="searchInput" placeholder="Buscar colaborador pelo nome...">
-      <button class="search-clear" id="searchClear" title="Limpar busca">✕</button>
+      <input type="text" id="searchInput" data-i18n-placeholder="search_collab_placeholder" placeholder="Buscar colaborador pelo nome...">
+      <button class="search-clear" id="searchClear" data-i18n-title="clear_search" title="Limpar busca">✕</button>
     </div>
     <a class="tools-btn" href="./ros.html" id="rosNavBtn">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 11l3 3L22 4"></path>
         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
       </svg>
-      Painel ROS
+      <span data-i18n="ros_panel_btn">Painel ROS</span>
       <span class="ros-count-badge" id="rosCountBadge" style="display:none;"></span>
     </a>
     <a class="tools-btn" href="https://heylink.me/FerramentasHSE/" target="_blank" rel="noopener noreferrer">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
       </svg>
-      Ferramentas HSE
+      <span data-i18n="hse_tools_btn">Ferramentas HSE</span>
     </a>
-    <button class="info-btn" id="perfBtn" title="Ver meu desempenho">
+    <button class="info-btn" id="perfBtn" data-i18n-title="my_performance" title="Ver meu desempenho">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 20V10"></path>
         <path d="M12 20V4"></path>
@@ -863,7 +888,7 @@
         <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
         <path d="m9 12 2 2 4-4"></path>
       </svg>
-      <span>Segurança do Trabalho: <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
+      <span><span data-i18n="footer_credit_label">Segurança do Trabalho:</span> <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
     </div>
   </footer>
 
@@ -872,73 +897,73 @@
 <div class="overlay" id="adminWelcomeOverlay">
   <div class="modal admin-welcome-modal">
     <div class="admin-welcome-icon">👋</div>
-    <h2>Bem-vindo, time HSE!</h2>
-    <div class="sub">
+    <h2 data-i18n="welcome_title">Bem-vindo, time HSE!</h2>
+    <div class="sub" data-i18n-html="welcome_intro">
       Você está na <b>Visão do Administrador</b> do placar. Além de acompanhar a campanha como
       todo mundo, aqui você também tem acesso a algumas ferramentas extras:
     </div>
     <ul class="admin-welcome-list">
-      <li><b>Lançar e editar pontos</b> dos colaboradores, por unidade ou colando direto do Excel</li>
-      <li><b>Ver relatórios e indicadores</b> — evolução dos pontos, quem ainda não pontuou, unidade mais engajada e mais</li>
-      <li><b>Configurar o contador</b> "dias sem acidentes de trabalho" da tela de abertura</li>
+      <li data-i18n-html="welcome_li1"><b>Lançar e editar pontos</b> dos colaboradores, por unidade ou colando direto do Excel</li>
+      <li data-i18n-html="welcome_li2"><b>Ver relatórios e indicadores</b> — evolução dos pontos, quem ainda não pontuou, unidade mais engajada e mais</li>
+      <li data-i18n-html="welcome_li3"><b>Configurar o contador</b> "dias sem acidentes de trabalho" da tela de abertura</li>
     </ul>
-    <div class="admin-welcome-hint">
+    <div class="admin-welcome-hint" data-i18n-html="welcome_hint">
       Tudo isso fica disponível clicando no ícone de engrenagem <span class="gear-inline">⚙</span> no rodapé da página.
     </div>
     <div class="modal-actions">
-      <button class="btn-save" id="adminWelcomeCloseBtn" style="flex:1;">Entendi, vamos lá!</button>
+      <button class="btn-save" id="adminWelcomeCloseBtn" style="flex:1;" data-i18n="welcome_cta">Entendi, vamos lá!</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h2>Painel do administrador</h2>
+    <h2 data-i18n="admin_panel_title">Painel do administrador</h2>
     <div class="admin-tabs">
-      <button class="admin-tab active" id="adminTabPontos">Pontos</button>
-      <button class="admin-tab" id="adminTabAnalise">Análise</button>
+      <button class="admin-tab active" id="adminTabPontos" data-i18n="admin_tab_pontos">Pontos</button>
+      <button class="admin-tab" id="adminTabAnalise" data-i18n="admin_tab_analise">Análise</button>
     </div>
 
     <div id="adminPanelPontos">
       <div class="days-config-box">
-        <label for="diasAcidentesInput">Contador "dias sem acidentes" (tela de abertura) — data do último acidente, ou de início da contagem</label>
+        <label for="diasAcidentesInput" data-i18n="days_config_label">Contador "dias sem acidentes" (tela de abertura) — data do último acidente, ou de início da contagem</label>
         <div class="days-config-row">
           <input type="date" id="diasAcidentesInput">
-          <button class="btn-save" id="diasAcidentesSaveBtn">Salvar</button>
+          <button class="btn-save" id="diasAcidentesSaveBtn" data-i18n="days_config_save">Salvar</button>
         </div>
         <div class="save-note" id="diasAcidentesNote"></div>
       </div>
-      <div class="sub">Lance aqui somente o total de pontos de cada colaborador. O critério que originou os pontos não é exibido no placar público.</div>
+      <div class="sub" data-i18n="points_admin_sub">Lance aqui somente o total de pontos de cada colaborador. O critério que originou os pontos não é exibido no placar público.</div>
       <div class="unit-toggle">
-        <button class="active" data-unit="filial" id="btnFilial">Filial</button>
-        <button data-unit="matriz" id="btnMatriz">Matriz</button>
+        <button class="active" data-unit="filial" id="btnFilial" data-i18n="tab_filial">Filial</button>
+        <button data-unit="matriz" id="btnMatriz" data-i18n="tab_matriz">Matriz</button>
       </div>
       <div id="editRows"></div>
-      <button class="add-btn" id="addRowBtn">+ adicionar colaborador</button>
+      <button class="add-btn" id="addRowBtn" data-i18n="add_collaborator">+ adicionar colaborador</button>
 
-      <button class="add-btn" id="bulkToggleBtn">📋 colar em lote (nome + pontos)</button>
+      <button class="add-btn" id="bulkToggleBtn" data-i18n="bulk_toggle">📋 colar em lote (nome + pontos)</button>
       <div class="bulk-area" id="bulkArea" style="display:none;">
-        <div class="bulk-hint">Cole duas colunas do Excel (Nome e Total), uma pessoa por linha. Quem já existir na lista tem os pontos atualizados; nomes novos são adicionados.</div>
+        <div class="bulk-hint" data-i18n="bulk_hint">Cole duas colunas do Excel (Nome e Total), uma pessoa por linha. Quem já existir na lista tem os pontos atualizados; nomes novos são adicionados.</div>
         <textarea id="bulkTextarea" placeholder="Ex.: (cole aqui, direto do Excel)&#10;Adriano Magela de Oliveira	145&#10;Agnaldo Lauriano Nunes Dias	90"></textarea>
         <div class="bulk-actions">
-          <button class="btn-save" id="bulkApplyBtn">Aplicar</button>
-          <button class="btn-close" id="bulkCancelBtn">Cancelar</button>
+          <button class="btn-save" id="bulkApplyBtn" data-i18n="bulk_apply">Aplicar</button>
+          <button class="btn-close" id="bulkCancelBtn" data-i18n="bulk_cancel">Cancelar</button>
         </div>
         <div class="save-note" id="bulkNote"></div>
       </div>
 
       <div class="modal-actions">
-        <button class="btn-save" id="saveBtn">Salvar e publicar</button>
-        <button class="btn-close" id="closeBtn">Fechar</button>
+        <button class="btn-save" id="saveBtn" data-i18n="modal_save">Salvar e publicar</button>
+        <button class="btn-close" id="closeBtn" data-i18n="modal_close">Fechar</button>
       </div>
       <div class="save-note" id="saveNote"></div>
     </div>
 
     <div id="adminPanelAnalise" style="display:none;">
-      <div class="sub">Visão geral da campanha, calculada a partir dos dados carregados agora. Some sozinha conforme você atualiza os pontos e os ROS.</div>
+      <div class="sub" data-i18n="analise_geral_sub">Visão geral da campanha, calculada a partir dos dados carregados agora. Some sozinha conforme você atualiza os pontos e os ROS.</div>
       <div id="analiseContent"></div>
       <div class="modal-actions">
-        <button class="btn-close" id="closeBtnAnalise" style="flex:1;">Fechar</button>
+        <button class="btn-close" id="closeBtnAnalise" style="flex:1;" data-i18n="modal_close">Fechar</button>
       </div>
     </div>
   </div>
@@ -955,6 +980,164 @@
 </div>
 
 <script>
+/* ---------------- Idioma (PT / EN / DE) ---------------- */
+const I18N = {
+  pt: {
+    board_title:'Nosso Time Bate um Bolão', board_subtitle:'CAMPANHA DE SEGURANÇA DO TRABALHO',
+    board_subtitle_cap:'Campanha de Segurança do Trabalho',
+    tab_filial:'Filial', tab_matriz:'Matriz', tab_geral:'Geral',
+    search_collab_placeholder:'Buscar colaborador pelo nome...', clear_search:'Limpar busca',
+    ros_panel_btn:'Painel ROS', hse_tools_btn:'Ferramentas HSE', my_performance:'Ver meu desempenho',
+    days_since_prefix:'Estamos há', days_since_suffix:'dias sem acidentes de trabalho',
+    tier_iniciante:'Iniciante', tier_atuante:'Atuante', tier_referencia:'Referência', tier_campeao:'Campeão',
+    footer_credit_label:'Segurança do Trabalho:', live_indicator:'AO VIVO', reconnecting:'RECONECTANDO',
+    admin_tab_pontos:'Pontos', admin_tab_analise:'Análise', admin_panel_title:'Painel do administrador',
+    modal_save:'Salvar e publicar', modal_close:'Fechar',
+    points_admin_sub:'Lance aqui somente o total de pontos de cada colaborador. O critério que originou os pontos não é exibido no placar público.',
+    add_collaborator:'+ adicionar colaborador', bulk_toggle:'📋 colar em lote (nome + pontos)',
+    bulk_hint:'Cole duas colunas do Excel (Nome e Total), uma pessoa por linha. Quem já existir na lista tem os pontos atualizados; nomes novos são adicionados.',
+    bulk_apply:'Aplicar', bulk_cancel:'Cancelar',
+    days_config_label:'Contador "dias sem acidentes" (tela de abertura) — data do último acidente, ou de início da contagem',
+    days_config_save:'Salvar',
+    welcome_title:'Bem-vindo, time HSE!',
+    welcome_intro:'Você está na <b>Visão do Administrador</b> do placar. Além de acompanhar a campanha como todo mundo, aqui você também tem acesso a algumas ferramentas extras:',
+    welcome_li1:'<b>Lançar e editar pontos</b> dos colaboradores, por unidade ou colando direto do Excel',
+    welcome_li2:'<b>Ver relatórios e indicadores</b> — evolução dos pontos, quem ainda não pontuou, unidade mais engajada e mais',
+    welcome_li3:'<b>Configurar o contador</b> "dias sem acidentes de trabalho" da tela de abertura',
+    welcome_hint:'Tudo isso fica disponível clicando no ícone de engrenagem <span class="gear-inline">⚙</span> no rodapé da página.',
+    welcome_cta:'Entendi, vamos lá!',
+    save_success:'Placar publicado com sucesso!',
+    bulk_updated:(n)=>`${n} atualizado(s)`, bulk_added:(n)=>`${n} novo(s)`, bulk_invalid:(n)=>`${n} linha(s) não reconhecida(s)`,
+    bulk_review:'. Revise abaixo e clique em "Salvar e publicar".',
+    analise_geral_sub:'Visão geral da campanha, calculada a partir dos dados carregados agora. Some sozinha conforme você atualiza os pontos e os ROS.',
+    analise_resumo_geral:'Resumo geral', analise_collab_participating:'colaboradores participando',
+    analise_points_summed:'pontos somados na campanha',
+    ros_open_label:'ROS ABERTOS', ros_progress_label:'EM ANDAMENTO', ros_completed_label:'CONCLUÍDOS', ros_overdue_label:'ATRASADOS',
+    analise_who_not_scored:'Quem ainda não pontuou', analise_everyone_scored:'Todo mundo já pontuou 🎉',
+    analise_most_engaged:'Unidade mais engajada', analise_participation_label:'Participação',
+    analise_avg_per_person:'Média por pessoa', analise_unit_total:'Total da unidade',
+    analise_tie:'Empate técnico na participação das duas unidades.',
+    analise_tier_distribution:'Distribuição por faixa', analise_weekly_evolution:'Evolução semana a semana',
+    evo_empty:'Ainda não há histórico suficiente pra desenhar o gráfico.<br>Cada "Salvar e publicar" registra um ponto novo aqui — depois de algumas atualizações, a evolução aparece sozinha.',
+    evo_caption:'Cada ponto é uma atualização salva no painel de pontos — o eixo vertical é o total de pontos da unidade naquele momento.',
+    board_empty:'Nenhuma pontuação lançada ainda.<br>Clique na engrenagem para começar a publicar o placar.',
+    ph_collab_name:'Nome do colaborador', ph_points:'Pontos', remove_row_title:'Remover',
+  },
+  en: {
+    board_title:'Our Team Scores Big', board_subtitle:'WORKPLACE SAFETY CAMPAIGN',
+    board_subtitle_cap:'Workplace Safety Campaign',
+    tab_filial:'Branch', tab_matriz:'HQ', tab_geral:'Overall',
+    search_collab_placeholder:'Search employee by name...', clear_search:'Clear search',
+    ros_panel_btn:'Incident Reports', hse_tools_btn:'HSE Tools', my_performance:'See my performance',
+    days_since_prefix:'We are at', days_since_suffix:'days without workplace accidents',
+    tier_iniciante:'Starter', tier_atuante:'Active', tier_referencia:'Reference', tier_campeao:'Champion',
+    footer_credit_label:'Occupational Safety:', live_indicator:'LIVE', reconnecting:'RECONNECTING',
+    admin_tab_pontos:'Points', admin_tab_analise:'Analytics', admin_panel_title:'Admin panel',
+    modal_save:'Save and publish', modal_close:'Close',
+    points_admin_sub:'Enter only the total points for each employee here. The criteria behind the points is not shown on the public board.',
+    add_collaborator:'+ add employee', bulk_toggle:'📋 paste in bulk (name + points)',
+    bulk_hint:'Paste two columns from Excel (Name and Total), one person per line. Anyone already on the list gets their points updated; new names are added.',
+    bulk_apply:'Apply', bulk_cancel:'Cancel',
+    days_config_label:'"Days without accidents" counter (opening screen) — date of last accident, or count start date',
+    days_config_save:'Save',
+    welcome_title:'Welcome, HSE team!',
+    welcome_intro:'You are in the board\'s <b>Admin View</b>. Besides following the campaign like everyone else, you also have access to some extra tools here:',
+    welcome_li1:'<b>Enter and edit points</b> for employees, by unit or pasted directly from Excel',
+    welcome_li2:'<b>View reports and metrics</b> — points evolution, who hasn\'t scored yet, most engaged unit and more',
+    welcome_li3:'<b>Configure the counter</b> for "days without workplace accidents" on the opening screen',
+    welcome_hint:'All of this is available by clicking the gear icon <span class="gear-inline">⚙</span> in the page footer.',
+    welcome_cta:'Got it, let\'s go!',
+    save_success:'Board published successfully!',
+    bulk_updated:(n)=>`${n} updated`, bulk_added:(n)=>`${n} new`, bulk_invalid:(n)=>`${n} line(s) not recognized`,
+    bulk_review:'. Review below and click "Save and publish".',
+    analise_geral_sub:'Campaign overview, calculated from the data currently loaded. Updates automatically as you update points and reports.',
+    analise_resumo_geral:'Overview', analise_collab_participating:'employees participating',
+    analise_points_summed:'points earned in the campaign',
+    ros_open_label:'OPEN REPORTS', ros_progress_label:'IN PROGRESS', ros_completed_label:'COMPLETED', ros_overdue_label:'OVERDUE',
+    analise_who_not_scored:'Who hasn\'t scored yet', analise_everyone_scored:'Everyone has scored 🎉',
+    analise_most_engaged:'Most engaged unit', analise_participation_label:'Participation',
+    analise_avg_per_person:'Average per person', analise_unit_total:'Unit total',
+    analise_tie:'Technical tie in participation between both units.',
+    analise_tier_distribution:'Tier distribution', analise_weekly_evolution:'Week-by-week evolution',
+    evo_empty:'Not enough history yet to draw the chart.<br>Each "Save and publish" registers a new point here — after a few updates, the trend appears on its own.',
+    evo_caption:'Each point is an update saved in the points panel — the vertical axis is the unit\'s total points at that moment.',
+    board_empty:'No points entered yet.<br>Click the gear icon to start publishing the board.',
+    ph_collab_name:'Employee name', ph_points:'Points', remove_row_title:'Remove',
+  },
+  de: {
+    board_title:'Unser Team punktet groß', board_subtitle:'KAMPAGNE FÜR ARBEITSSICHERHEIT',
+    board_subtitle_cap:'Kampagne für Arbeitssicherheit',
+    tab_filial:'Zweigstelle', tab_matriz:'Hauptsitz', tab_geral:'Gesamt',
+    search_collab_placeholder:'Mitarbeiter nach Namen suchen...', clear_search:'Suche löschen',
+    ros_panel_btn:'Vorfallmeldungen', hse_tools_btn:'HSE-Werkzeuge', my_performance:'Meine Leistung ansehen',
+    days_since_prefix:'Wir sind bei', days_since_suffix:'Tagen ohne Arbeitsunfälle',
+    tier_iniciante:'Einsteiger', tier_atuante:'Aktiv', tier_referencia:'Referenz', tier_campeao:'Champion',
+    footer_credit_label:'Arbeitssicherheit:', live_indicator:'LIVE', reconnecting:'VERBINDE NEU',
+    admin_tab_pontos:'Punkte', admin_tab_analise:'Analyse', admin_panel_title:'Admin-Panel',
+    modal_save:'Speichern und veröffentlichen', modal_close:'Schließen',
+    points_admin_sub:'Geben Sie hier nur die Gesamtpunktzahl jedes Mitarbeiters ein. Das Kriterium hinter den Punkten wird im öffentlichen Board nicht angezeigt.',
+    add_collaborator:'+ Mitarbeiter hinzufügen', bulk_toggle:'📋 Massenimport (Name + Punkte)',
+    bulk_hint:'Fügen Sie zwei Spalten aus Excel ein (Name und Gesamt), eine Person pro Zeile. Wer bereits in der Liste steht, bekommt die Punkte aktualisiert; neue Namen werden hinzugefügt.',
+    bulk_apply:'Anwenden', bulk_cancel:'Abbrechen',
+    days_config_label:'Zähler "Tage ohne Unfälle" (Startbildschirm) — Datum des letzten Unfalls oder Beginn der Zählung',
+    days_config_save:'Speichern',
+    welcome_title:'Willkommen, HSE-Team!',
+    welcome_intro:'Sie befinden sich in der <b>Admin-Ansicht</b> des Boards. Neben der Verfolgung der Kampagne wie alle anderen haben Sie hier auch Zugriff auf einige zusätzliche Werkzeuge:',
+    welcome_li1:'<b>Punkte erfassen und bearbeiten</b> für Mitarbeiter, nach Einheit oder direkt aus Excel eingefügt',
+    welcome_li2:'<b>Berichte und Kennzahlen ansehen</b> — Punkteentwicklung, wer noch nicht gepunktet hat, engagierteste Einheit und mehr',
+    welcome_li3:'<b>Den Zähler konfigurieren</b> für "Tage ohne Arbeitsunfälle" auf dem Startbildschirm',
+    welcome_hint:'All das ist über das Zahnrad-Symbol <span class="gear-inline">⚙</span> in der Fußzeile der Seite verfügbar.',
+    welcome_cta:'Verstanden, los geht\'s!',
+    save_success:'Board erfolgreich veröffentlicht!',
+    bulk_updated:(n)=>`${n} aktualisiert`, bulk_added:(n)=>`${n} neu`, bulk_invalid:(n)=>`${n} Zeile(n) nicht erkannt`,
+    bulk_review:'. Unten überprüfen und auf "Speichern und veröffentlichen" klicken.',
+    analise_geral_sub:'Kampagnenübersicht, berechnet aus den aktuell geladenen Daten. Aktualisiert sich automatisch, wenn Sie Punkte und Meldungen aktualisieren.',
+    analise_resumo_geral:'Übersicht', analise_collab_participating:'teilnehmende Mitarbeiter',
+    analise_points_summed:'in der Kampagne gesammelte Punkte',
+    ros_open_label:'OFFENE MELDUNGEN', ros_progress_label:'IN BEARBEITUNG', ros_completed_label:'ABGESCHLOSSEN', ros_overdue_label:'ÜBERFÄLLIG',
+    analise_who_not_scored:'Wer noch nicht gepunktet hat', analise_everyone_scored:'Alle haben schon gepunktet 🎉',
+    analise_most_engaged:'Engagierteste Einheit', analise_participation_label:'Beteiligung',
+    analise_avg_per_person:'Durchschnitt pro Person', analise_unit_total:'Gesamt der Einheit',
+    analise_tie:'Technisches Unentschieden bei der Beteiligung beider Einheiten.',
+    analise_tier_distribution:'Verteilung nach Stufe', analise_weekly_evolution:'Wöchentliche Entwicklung',
+    evo_empty:'Noch nicht genug Verlauf, um das Diagramm zu zeichnen.<br>Jedes "Speichern und veröffentlichen" registriert hier einen neuen Punkt — nach ein paar Aktualisierungen erscheint der Trend von selbst.',
+    evo_caption:'Jeder Punkt ist eine im Punkte-Panel gespeicherte Aktualisierung — die vertikale Achse zeigt die Gesamtpunktzahl der Einheit zu diesem Zeitpunkt.',
+    board_empty:'Noch keine Punkte erfasst.<br>Klicken Sie auf das Zahnrad-Symbol, um mit der Veröffentlichung des Boards zu beginnen.',
+    ph_collab_name:'Name des Mitarbeiters', ph_points:'Punkte', remove_row_title:'Entfernen',
+  }
+};
+let currentLang = localStorage.getItem('campanhaLang') || 'pt';
+function t(key){
+  return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.pt && I18N.pt[key]) || key;
+}
+function tf(key, ...args){
+  const fn = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.pt && I18N.pt[key]);
+  return typeof fn === 'function' ? fn(...args) : (fn || key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
+  document.documentElement.lang = currentLang === 'pt' ? 'pt-BR' : currentLang;
+}
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('campanhaLang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  applyI18n();
+  if(typeof renderBoard === 'function') renderBoard();
+  if(typeof setLiveState === 'function' && typeof isOnline !== 'undefined') setLiveState(isOnline);
+  const analisePanel = document.getElementById('adminPanelAnalise');
+  if(analisePanel && analisePanel.style.display !== 'none' && typeof renderAnalise === 'function') renderAnalise();
+  if(tipTimer && typeof showTip === 'function') showTip();
+}
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLang(btn.dataset.lang));
+});
+document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+applyI18n();
+
 // Modo administrador: só fica visível quando o link é aberto com ?admin=1 no final.
 // Como agora é o MESMO artefato para os dois casos, os dados ficam sempre sincronizados.
 const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
@@ -1187,7 +1370,7 @@ function setLiveState(online){
   if(!dot || !label) return;
   dot.classList.toggle('offline', !online);
   label.classList.toggle('offline', !online);
-  label.textContent = online ? 'AO VIVO' : 'RECONECTANDO';
+  label.textContent = online ? t('live_indicator') : t('reconnecting');
 }
 
 // Busca os dados das duas unidades de uma vez só (a planilha devolve tudo junto).
@@ -1278,16 +1461,16 @@ function rankChangeHtml(key, newPos, forPodium){
 }
 
 const TIERS = [
-  { min: 300, name: 'Campeão',    cls: 'tier-4' },
-  { min: 150, name: 'Referência', cls: 'tier-3' },
-  { min: 50,  name: 'Atuante',    cls: 'tier-2' },
-  { min: 0,   name: 'Iniciante',  cls: 'tier-1' },
+  { min: 300, name: 'Campeão',    cls: 'tier-4', key: 'tier_campeao' },
+  { min: 150, name: 'Referência', cls: 'tier-3', key: 'tier_referencia' },
+  { min: 50,  name: 'Atuante',    cls: 'tier-2', key: 'tier_atuante' },
+  { min: 0,   name: 'Iniciante',  cls: 'tier-1', key: 'tier_iniciante' },
 ];
 
 function tierBadgeHtml(points, forPodium){
-  const tier = TIERS.find(t => points >= t.min);
+  const tier = TIERS.find(x => points >= x.min);
   const wrap = forPodium ? 'div' : 'span';
-  return `<${wrap} class="tier-badge ${tier.cls}">${tier.name}</${wrap}>`;
+  return `<${wrap} class="tier-badge ${tier.cls}">${t(tier.key)}</${wrap}>`;
 }
 
 /* ---------------- Aba Análise (dentro do painel admin) ---------------- */
@@ -1324,7 +1507,7 @@ function renderEvolutionChart(historico){
 
   const allPoints = [...filialSeries, ...matrizSeries];
   if(allPoints.length < 2){
-    return `<div class="evo-empty">Ainda não há histórico suficiente pra desenhar o gráfico.<br>Cada "Salvar e publicar" registra um ponto novo aqui — depois de algumas atualizações, a evolução aparece sozinha.</div>`;
+    return `<div class="evo-empty">${t('evo_empty')}</div>`;
   }
 
   const minT = Math.min(...allPoints.map(p => p.t));
@@ -1345,8 +1528,8 @@ function renderEvolutionChart(historico){
 
   return `
     <div style="display:flex; gap:16px; font-size:11.5px; color:var(--muted); margin-bottom:6px;">
-      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#009FE3;margin-right:5px;"></span>Filial</span>
-      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F4BE2C;margin-right:5px;"></span>Matriz</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#009FE3;margin-right:5px;"></span>${t('tab_filial')}</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F4BE2C;margin-right:5px;"></span>${t('tab_matriz')}</span>
     </div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
       <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
@@ -1360,7 +1543,7 @@ function renderEvolutionChart(historico){
       <text x="${padL}" y="${H-6}" font-size="9.5" fill="#7FAFC2">${dateFmt(minT)}</text>
       <text x="${padL+plotW}" y="${H-6}" text-anchor="end" font-size="9.5" fill="#7FAFC2">${dateFmt(maxT)}</text>
     </svg>
-    <div class="evo-caption">Cada ponto é uma atualização salva no painel de pontos — o eixo vertical é o total de pontos da unidade naquele momento.</div>
+    <div class="evo-caption">${t('evo_caption')}</div>
   `;
 }
 
@@ -1410,71 +1593,71 @@ function renderAnalise(){
 
   const listHtml = names => names.length
     ? `<ul>${names.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
-    : `<div class="noscore-empty">Todo mundo já pontuou 🎉</div>`;
+    : `<div class="noscore-empty">${t('analise_everyone_scored')}</div>`;
 
   container.innerHTML = `
     <div class="analysis-section">
-      <h3>Resumo geral</h3>
+      <h3>${t('analise_resumo_geral')}</h3>
       <div class="stat-grid">
-        <div class="stat-card"><div class="stat-value">${participating}/${totalPeople}</div><div class="stat-label">colaboradores participando</div></div>
-        <div class="stat-card"><div class="stat-value">${totalPoints.toLocaleString('pt-BR')}</div><div class="stat-label">pontos somados na campanha</div></div>
+        <div class="stat-card"><div class="stat-value">${participating}/${totalPeople}</div><div class="stat-label">${t('analise_collab_participating')}</div></div>
+        <div class="stat-card"><div class="stat-value">${totalPoints.toLocaleString('pt-BR')}</div><div class="stat-label">${t('analise_points_summed')}</div></div>
       </div>
       <div class="ros-mini-grid">
-        <div class="ros-mini-card"><div class="val" style="color:#FCA5A5;">${rosAbertos}</div><div class="lbl">ROS ABERTOS</div></div>
-        <div class="ros-mini-card"><div class="val" style="color:var(--gold);">${rosAndamento}</div><div class="lbl">EM ANDAMENTO</div></div>
-        <div class="ros-mini-card"><div class="val" style="color:#86EFAC;">${rosConcluidos}</div><div class="lbl">CONCLUÍDOS</div></div>
-        <div class="ros-mini-card"><div class="val" style="color:#EF4444;">${rosAtrasados}</div><div class="lbl">ATRASADOS</div></div>
+        <div class="ros-mini-card"><div class="val" style="color:#FCA5A5;">${rosAbertos}</div><div class="lbl">${t('ros_open_label')}</div></div>
+        <div class="ros-mini-card"><div class="val" style="color:var(--gold);">${rosAndamento}</div><div class="lbl">${t('ros_progress_label')}</div></div>
+        <div class="ros-mini-card"><div class="val" style="color:#86EFAC;">${rosConcluidos}</div><div class="lbl">${t('ros_completed_label')}</div></div>
+        <div class="ros-mini-card"><div class="val" style="color:#EF4444;">${rosAtrasados}</div><div class="lbl">${t('ros_overdue_label')}</div></div>
       </div>
     </div>
 
     <div class="analysis-section">
-      <h3>Quem ainda não pontuou</h3>
+      <h3>${t('analise_who_not_scored')}</h3>
       <div class="noscore-cols">
         <div class="noscore-col">
-          <div class="col-title">Filial (${semPontosFilial.length})</div>
+          <div class="col-title">${t('tab_filial')} (${semPontosFilial.length})</div>
           ${listHtml(semPontosFilial)}
         </div>
         <div class="noscore-col">
-          <div class="col-title">Matriz (${semPontosMatriz.length})</div>
+          <div class="col-title">${t('tab_matriz')} (${semPontosMatriz.length})</div>
           ${listHtml(semPontosMatriz)}
         </div>
       </div>
     </div>
 
     <div class="analysis-section">
-      <h3>Unidade mais engajada</h3>
+      <h3>${t('analise_most_engaged')}</h3>
       <div class="engage-compare">
         <div class="engage-card ${vencedora==='Filial' ? 'winner' : ''}">
           ${vencedora==='Filial' ? '<div class="engage-crown">🏆</div>' : ''}
-          <div class="engage-unit">Filial</div>
-          <div class="engage-metric"><span>Participação</span><b>${filialStats.pct}% (${filialStats.part}/${filialStats.total})</b></div>
-          <div class="engage-metric"><span>Média por pessoa</span><b>${filialStats.media} pts</b></div>
-          <div class="engage-metric"><span>Total da unidade</span><b>${filialStats.soma.toLocaleString('pt-BR')} pts</b></div>
+          <div class="engage-unit">${t('tab_filial')}</div>
+          <div class="engage-metric"><span>${t('analise_participation_label')}</span><b>${filialStats.pct}% (${filialStats.part}/${filialStats.total})</b></div>
+          <div class="engage-metric"><span>${t('analise_avg_per_person')}</span><b>${filialStats.media} pts</b></div>
+          <div class="engage-metric"><span>${t('analise_unit_total')}</span><b>${filialStats.soma.toLocaleString('pt-BR')} pts</b></div>
         </div>
         <div class="engage-card ${vencedora==='Matriz' ? 'winner' : ''}">
           ${vencedora==='Matriz' ? '<div class="engage-crown">🏆</div>' : ''}
-          <div class="engage-unit">Matriz</div>
-          <div class="engage-metric"><span>Participação</span><b>${matrizStats.pct}% (${matrizStats.part}/${matrizStats.total})</b></div>
-          <div class="engage-metric"><span>Média por pessoa</span><b>${matrizStats.media} pts</b></div>
-          <div class="engage-metric"><span>Total da unidade</span><b>${matrizStats.soma.toLocaleString('pt-BR')} pts</b></div>
+          <div class="engage-unit">${t('tab_matriz')}</div>
+          <div class="engage-metric"><span>${t('analise_participation_label')}</span><b>${matrizStats.pct}% (${matrizStats.part}/${matrizStats.total})</b></div>
+          <div class="engage-metric"><span>${t('analise_avg_per_person')}</span><b>${matrizStats.media} pts</b></div>
+          <div class="engage-metric"><span>${t('analise_unit_total')}</span><b>${matrizStats.soma.toLocaleString('pt-BR')} pts</b></div>
         </div>
       </div>
-      ${vencedora ? '' : '<div class="noscore-empty" style="margin-top:8px;">Empate técnico na participação das duas unidades.</div>'}
+      ${vencedora ? '' : `<div class="noscore-empty" style="margin-top:8px;">${t('analise_tie')}</div>`}
     </div>
 
     <div class="analysis-section">
-      <h3>Distribuição por faixa</h3>
-      ${tierCounts.map(t => `
+      <h3>${t('analise_tier_distribution')}</h3>
+      ${tierCounts.map(tc => `
         <div class="tier-dist-row">
-          <span class="tier-dist-label">${t.name}</span>
-          <div class="tier-dist-bar-bg"><div class="tier-dist-bar-fill" style="width:${(t.count/maxTierCount*100)}%; background:${TIER_BAR_COLORS[t.cls]};"></div></div>
-          <span class="tier-dist-count">${t.count}</span>
+          <span class="tier-dist-label">${t(tc.key)}</span>
+          <div class="tier-dist-bar-bg"><div class="tier-dist-bar-fill" style="width:${(tc.count/maxTierCount*100)}%; background:${TIER_BAR_COLORS[tc.cls]};"></div></div>
+          <span class="tier-dist-count">${tc.count}</span>
         </div>
       `).join('')}
     </div>
 
     <div class="analysis-section">
-      <h3>Evolução semana a semana</h3>
+      <h3>${t('analise_weekly_evolution')}</h3>
       ${renderEvolutionChart(data.historico)}
     </div>
   `;
@@ -1487,7 +1670,7 @@ function renderBoard(){
   document.getElementById('updatedAt').textContent = fmtWhen(latestUpdatedAt(currentUnit));
 
   if(rows.length === 0){
-    board.innerHTML = '<div class="empty">Nenhuma pontuação lançada ainda.<br>Clique na engrenagem para começar a publicar o placar.</div>';
+    board.innerHTML = `<div class="empty">${t('board_empty')}</div>`;
     return;
   }
 
@@ -1950,9 +2133,9 @@ function drawEditRows(){
   const container = document.getElementById('editRows');
   container.innerHTML = editBuffer.map((r,i)=>`
     <div class="edit-row">
-      <input type="text" value="${r.name.replace(/"/g,'&quot;')}" placeholder="Nome do colaborador" data-idx="${i}" data-field="name">
-      <input type="number" min="0" value="${r.points}" placeholder="Pontos" data-idx="${i}" data-field="points">
-      <button data-idx="${i}" class="rm-row" title="Remover">✕</button>
+      <input type="text" value="${r.name.replace(/"/g,'&quot;')}" placeholder="${t('ph_collab_name')}" data-idx="${i}" data-field="name">
+      <input type="number" min="0" value="${r.points}" placeholder="${t('ph_points')}" data-idx="${i}" data-field="points">
+      <button data-idx="${i}" class="rm-row" title="${t('remove_row_title')}">✕</button>
     </div>
   `).join('');
 
@@ -2032,9 +2215,9 @@ document.getElementById('bulkApplyBtn').addEventListener('click', ()=>{
   });
 
   drawEditRows();
-  const partes = [`${updated} atualizado(s)`, `${added} novo(s)`];
-  if(invalid > 0) partes.push(`${invalid} linha(s) não reconhecida(s)`);
-  bulkNote.textContent = partes.join(' · ') + '. Revise abaixo e clique em "Salvar e publicar".';
+  const partes = [tf('bulk_updated', updated), tf('bulk_added', added)];
+  if(invalid > 0) partes.push(tf('bulk_invalid', invalid));
+  bulkNote.textContent = partes.join(' · ') + t('bulk_review');
   bulkTextarea.value = '';
 });
 
@@ -2042,33 +2225,56 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   const clean = editBuffer.filter(r=>r.name && r.name.trim().length>0);
   await saveUnit(editUnit, clean);
   const note = document.getElementById('saveNote');
-  note.textContent = 'Placar publicado com sucesso!';
+  note.textContent = t('save_success');
   setTimeout(()=>{ note.textContent=''; }, 2500);
   if(editUnit === currentUnit){ prevRendered = {}; renderBoard(); }
 });
 
 /* ---------------- Dica de segurança rotativa ---------------- */
-const SAFETY_TIPS = [
-  'Reportar um quase-acidente vale pontos e pode evitar um acidente real.',
-  'Praticar os 5S no seu setor ajuda a prevenir riscos escondidos.',
-  'Cuidar da saúde mental também é segurança do trabalho — a terapia conta pontos na campanha.',
-  'Uma boa prática registrada hoje pode virar padrão amanhã.',
-  'Participar de palestras e treinamentos mantém a segurança sempre em dia.',
-  'Inspeções regulares identificam riscos antes que virem acidentes.',
-  'Exames periódicos em dia é cuidado contínuo com a sua saúde.',
-  'Toda sugestão de melhoria ajuda a tornar o ambiente mais seguro pra todo mundo.'
-];
+const SAFETY_TIPS = {
+  pt: [
+    'Reportar um quase-acidente vale pontos e pode evitar um acidente real.',
+    'Praticar os 5S no seu setor ajuda a prevenir riscos escondidos.',
+    'Cuidar da saúde mental também é segurança do trabalho — a terapia conta pontos na campanha.',
+    'Uma boa prática registrada hoje pode virar padrão amanhã.',
+    'Participar de palestras e treinamentos mantém a segurança sempre em dia.',
+    'Inspeções regulares identificam riscos antes que virem acidentes.',
+    'Exames periódicos em dia é cuidado contínuo com a sua saúde.',
+    'Toda sugestão de melhoria ajuda a tornar o ambiente mais seguro pra todo mundo.'
+  ],
+  en: [
+    'Reporting a near-miss earns points and can prevent a real accident.',
+    'Practicing 5S in your area helps prevent hidden hazards.',
+    'Taking care of your mental health is also workplace safety — therapy earns points in the campaign.',
+    'A good practice recorded today can become tomorrow\'s standard.',
+    'Attending talks and training keeps safety always up to date.',
+    'Regular inspections catch hazards before they become accidents.',
+    'Keeping up with periodic checkups is ongoing care for your health.',
+    'Every improvement suggestion helps make the workplace safer for everyone.'
+  ],
+  de: [
+    'Das Melden eines Beinaheunfalls bringt Punkte und kann einen echten Unfall verhindern.',
+    'Die 5S-Methode in Ihrem Bereich hilft, versteckte Risiken zu vermeiden.',
+    'Auf die mentale Gesundheit zu achten ist auch Arbeitssicherheit — Therapie bringt Punkte in der Kampagne.',
+    'Eine heute erfasste gute Praxis kann morgen zum Standard werden.',
+    'Die Teilnahme an Vorträgen und Schulungen hält die Sicherheit stets aktuell.',
+    'Regelmäßige Inspektionen erkennen Risiken, bevor sie zu Unfällen werden.',
+    'Regelmäßige Vorsorgeuntersuchungen sind fortlaufende Sorge um Ihre Gesundheit.',
+    'Jeder Verbesserungsvorschlag trägt dazu bei, die Umgebung für alle sicherer zu machen.'
+  ]
+};
 let tipIndex = 0;
 let tipTimer = null;
 
 function showTip(){
   const el = document.getElementById('tipText');
   if(!el) return;
+  const tips = SAFETY_TIPS[currentLang] || SAFETY_TIPS.pt;
   el.style.animation = 'none';
   void el.offsetWidth; // força o reinício da animação de fade
-  el.textContent = SAFETY_TIPS[tipIndex];
+  el.textContent = tips[tipIndex % tips.length];
   el.style.animation = '';
-  tipIndex = (tipIndex + 1) % SAFETY_TIPS.length;
+  tipIndex = (tipIndex + 1) % tips.length;
 }
 
 function startTips(){
@@ -2085,6 +2291,7 @@ document.getElementById('tipClose').addEventListener('click', ()=>{
 function hideSplash(){
   const splash = document.getElementById('splash');
   if(splash) splash.classList.add('hide');
+  document.body.classList.remove('splash-lock');
 }
 
 // Popup de boas-vindas só pro admin (?admin=1), só na primeira vez nesse navegador —
@@ -2125,14 +2332,16 @@ function animateDaysCounter(target, durationMs){
 
 function showDiasSemAcidentesBanner(){
   const wrap = document.getElementById('splashDaysWrap');
+  const top = document.querySelector('.splash-top');
   if(!wrap) return false;
   const base = parseDataFlexivelNav(data.diasSemAcidentesDesde);
-  if(!base){ wrap.classList.remove('show'); return false; }
+  if(!base){ wrap.classList.remove('show'); if(top) top.classList.remove('has-days-banner'); return false; }
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   base.setHours(0,0,0,0);
   const dias = Math.round((hoje.getTime() - base.getTime()) / 86400000);
-  if(dias < 0){ wrap.classList.remove('show'); return false; }
+  if(dias < 0){ wrap.classList.remove('show'); if(top) top.classList.remove('has-days-banner'); return false; }
   wrap.classList.add('show');
+  if(top) top.classList.add('has-days-banner');
   animateDaysCounter(dias, 1600);
   return true;
 }
