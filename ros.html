@@ -35,7 +35,23 @@
     color:var(--ink);
     font-family:'Inter',sans-serif;
   }
-  .wrap{max-width:1180px; margin:0 auto; padding:28px 32px 80px;}
+
+  /* Fundo "vivo": manchas de cor se movendo bem devagar atrás de tudo */
+  .aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+  .aurora span{position:absolute; border-radius:50%; filter:blur(95px); opacity:0.16; animation:auroraMove ease-in-out infinite;}
+  .aurora span:nth-child(1){width:620px; height:620px; top:-220px; left:-160px; background:radial-gradient(circle, var(--blue), transparent 70%); animation-duration:22s;}
+  .aurora span:nth-child(2){width:540px; height:540px; bottom:-220px; right:-160px; background:radial-gradient(circle, var(--gold), transparent 70%); animation-duration:26s; animation-delay:-7s;}
+  .aurora span:nth-child(3){width:440px; height:440px; top:38%; right:8%; background:radial-gradient(circle, var(--blue-light), transparent 70%); animation-duration:18s; animation-delay:-11s; opacity:0.11;}
+  @keyframes auroraMove{
+    0%,100%{transform:translate(0,0) scale(1);}
+    33%{transform:translate(55px,-45px) scale(1.08);}
+    66%{transform:translate(-45px,35px) scale(0.94);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .aurora span{animation:none;}
+  }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 32px 80px; position:relative; z-index:1;}
 
   /* ---------- Header ---------- */
   header{
@@ -101,6 +117,7 @@
     display:flex; flex-direction:column; gap:10px;
     cursor:pointer; user-select:none;
     transition:border-color .2s ease, background .2s ease;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
   }
   .ros-card:hover{border-color:rgba(0,159,227,0.4);}
   .ros-card.risk-alto{border-left-color:#EF4444;}
@@ -251,6 +268,7 @@
     border:1px solid var(--line); border-left:4px solid var(--line); border-radius:10px;
     padding:12px 16px; cursor:pointer;
     transition:border-color .2s ease;
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
   }
   .ros-list-row:hover{border-color:rgba(0,159,227,0.4);}
   .ros-list-row.risk-alto{border-left-color:#EF4444;}
@@ -269,13 +287,22 @@
   }
 
   .footer-credit{
-    display:flex; align-items:center; justify-content:center; gap:7px;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
     padding-top:12px; margin-top:20px; border-top:1px solid var(--line);
     font-size:10.5px; letter-spacing:0.4px; color:var(--muted); opacity:0.8;
-    text-align:center; flex-wrap:wrap;
+    text-align:center;
   }
+  .footer-credit-top{display:flex; align-items:center; justify-content:center; gap:7px; flex-wrap:wrap;}
   .footer-credit b{color:var(--blue-light); font-weight:600;}
-  .footer-credit svg{flex:none; opacity:0.75;}
+  .footer-shield-icon{flex:none; opacity:0.75;}
+  .footer-flags{display:flex; align-items:center; justify-content:center; gap:9px;}
+  .footer-flag{
+    display:block; width:27px; height:19px; border-radius:3px; overflow:hidden; flex:none;
+    box-shadow:0 2px 7px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2);
+    transition:transform .2s ease;
+  }
+  .footer-flag:hover{transform:translateY(-1px) scale(1.06);}
+  .footer-flag svg{width:100%; height:100%; display:block;}
 
   .gear{
     width:38px; height:38px; border-radius:50%; border:1px solid var(--line);
@@ -415,6 +442,7 @@
 </style>
 </head>
 <body>
+<div class="aurora"><span></span><span></span><span></span></div>
 
 <div class="wrap">
 
@@ -516,12 +544,43 @@
   <div id="printReportArea" class="print-only"></div>
 
   <div class="footer-credit">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
-      <path d="m9 12 2 2 4-4"></path>
-    </svg>
-    <span><span data-i18n="footer_credit_label">Segurança do Trabalho:</span> <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
-    <div class="gear" id="gearBtn" data-i18n-title="admin_panel_title" title="Painel do administrador">⚙</div>
+    <div class="footer-credit-top">
+      <svg class="footer-shield-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
+        <path d="m9 12 2 2 4-4"></path>
+      </svg>
+      <span><span data-i18n="footer_credit_label">Segurança do Trabalho:</span> <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
+      <div class="gear" id="gearBtn" data-i18n-title="admin_panel_title" title="Painel do administrador">⚙</div>
+    </div>
+    <div class="footer-flags">
+      <span class="footer-flag" title="Brasil">
+        <svg viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg">
+          <rect width="20" height="14" fill="#009639"/>
+          <polygon points="10,1.3 18.5,7 10,12.7 1.5,7" fill="#FEDF00"/>
+          <circle cx="10" cy="7" r="4.2" fill="#002776"/>
+          <path d="M 6.2 8.8 Q 10 6.6 14.2 5.3" stroke="#FFFFFF" stroke-width="1.1" fill="none"/>
+          <g fill="#FFFFFF">
+            <circle cx="8.1" cy="5.1" r="0.22"/>
+            <circle cx="9.3" cy="4.2" r="0.22"/>
+            <circle cx="11.2" cy="4.4" r="0.22"/>
+            <circle cx="12.6" cy="5.8" r="0.22"/>
+            <circle cx="12.3" cy="7.6" r="0.22"/>
+            <circle cx="11.3" cy="9.2" r="0.22"/>
+            <circle cx="9.2" cy="9.6" r="0.22"/>
+            <circle cx="7.7" cy="8.4" r="0.22"/>
+            <circle cx="7.4" cy="6.7" r="0.22"/>
+            <circle cx="10" cy="7" r="0.28"/>
+          </g>
+        </svg>
+      </span>
+      <span class="footer-flag" title="Deutschland">
+        <svg viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg">
+          <rect width="20" height="14" fill="#000000"/>
+          <rect y="4.667" width="20" height="4.667" fill="#DD0000"/>
+          <rect y="9.333" width="20" height="4.667" fill="#FFCE00"/>
+        </svg>
+      </span>
+    </div>
   </div>
 
 </div>
