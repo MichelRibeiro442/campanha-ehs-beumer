@@ -167,6 +167,21 @@
   }
   .ros-history-date{flex:none; color:var(--blue-light); font-weight:600; white-space:nowrap;}
   .ros-history-empty{font-size:12px; color:var(--muted); font-style:italic;}
+  .ros-history-comment{color:var(--ink);}
+  .ros-history-comment .ros-history-date{color:#F4BE2C;}
+
+  .ros-comment-box{
+    background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; margin-top:4px;
+  }
+  .ros-comment-box textarea{
+    width:100%; min-height:56px; background:rgba(255,255,255,0.05); border:1px solid var(--line);
+    border-radius:8px; color:#fff; padding:8px 10px; font-family:'Inter',sans-serif; font-size:13px;
+    resize:vertical; margin:6px 0 8px;
+  }
+  .ros-comment-box textarea:focus{outline:2px solid var(--blue); outline-offset:1px;}
+  .ros-comment-box .btn-save{width:100%; padding:9px; font-size:13px;}
+  .ros-comment-box .save-note{margin-top:6px;}
 
   .empty-state{
     text-align:center; padding:60px 20px; color:var(--muted);
@@ -606,6 +621,7 @@ const I18N = {
     print_generated_on:(d)=>`Gerado em ${d}`, print_total_items:(n)=>`${n} ROS listado${n===1?'':'s'}`,
     print_col_id:'#', print_col_unit:'Unidade', print_col_status:'Status', print_col_risk:'Risco',
     print_col_local:'Local', print_col_desc:'Descrição', print_col_opened_by:'Aberto por', print_col_deadline:'Prazo',
+    add_comment_label:'Adicionar comentário', add_comment_placeholder:'Registre uma atualização informal sobre esse ROS...', add_comment_btn:'Adicionar comentário',
   },
   en: {
     trend_btn:'Trend', back_to_board:'Back to dashboard',
@@ -649,6 +665,7 @@ const I18N = {
     print_generated_on:(d)=>`Generated on ${d}`, print_total_items:(n)=>`${n} report${n===1?'':'s'} listed`,
     print_col_id:'#', print_col_unit:'Unit', print_col_status:'Status', print_col_risk:'Risk',
     print_col_local:'Location', print_col_desc:'Description', print_col_opened_by:'Reported by', print_col_deadline:'Deadline',
+    add_comment_label:'Add comment', add_comment_placeholder:'Log an informal update about this report...', add_comment_btn:'Add comment',
   },
   de: {
     trend_btn:'Trend', back_to_board:'Zurück zum Dashboard',
@@ -692,6 +709,7 @@ const I18N = {
     print_generated_on:(d)=>`Erstellt am ${d}`, print_total_items:(n)=>`${n} Meldung${n===1?'':'en'} aufgelistet`,
     print_col_id:'#', print_col_unit:'Einheit', print_col_status:'Status', print_col_risk:'Risiko',
     print_col_local:'Ort', print_col_desc:'Beschreibung', print_col_opened_by:'Gemeldet von', print_col_deadline:'Frist',
+    add_comment_label:'Kommentar hinzufügen', add_comment_placeholder:'Erfassen Sie ein informelles Update zu dieser Meldung...', add_comment_btn:'Kommentar hinzufügen',
   }
 };
 let currentLang = localStorage.getItem('campanhaLang') || 'pt';
@@ -740,6 +758,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVB
 
 let allRos = [];
 let allHistoricoRos = [];
+let allComentariosRos = [];
+let currentOpenRosId = null;
 let currentFilter = 'abertos';
 let searchQuery = '';
 let meuNomeFilter = localStorage.getItem('rosMeuNome') || '';
@@ -924,23 +944,34 @@ function escapeHtml(str){
 }
 
 function historyHtmlFor(item){
-  const entries = allHistoricoRos
+  const fmt = iso => { const d = new Date(iso); return isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }); };
+
+  const statusEntries = allHistoricoRos
     .filter(h => h.key === item.key)
-    .slice()
-    .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+    .map(h => ({
+      timestamp: h.timestamp,
+      html: h.statusAnterior
+        ? `${escapeHtml(statusLabel(h.statusAnterior))} → ${escapeHtml(statusLabel(h.statusNovo))}`
+        : `${t('aberto_status_inicial')} ${escapeHtml(statusLabel(h.statusNovo))})`
+    }));
+
+  const commentEntries = allComentariosRos
+    .filter(c => c.rosId === item.id)
+    .map(c => ({
+      timestamp: c.timestamp,
+      html: `💬 ${escapeHtml(c.comentario)}`,
+      isComment: true
+    }));
+
+  const entries = [...statusEntries, ...commentEntries].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
 
   if(entries.length === 0){
     return `<div class="ros-history-empty">${t('historico_vazio')}</div>`;
   }
 
-  const fmt = iso => { const d = new Date(iso); return isNaN(d.getTime()) ? '' : d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' }); };
-
-  return '<div class="ros-history">' + entries.map(h => {
-    const texto = h.statusAnterior
-      ? `${escapeHtml(statusLabel(h.statusAnterior))} → ${escapeHtml(statusLabel(h.statusNovo))}`
-      : `${t('aberto_status_inicial')} ${escapeHtml(statusLabel(h.statusNovo))})`;
-    return `<div class="ros-history-item"><span class="ros-history-date">${fmt(h.timestamp)}</span><span>${texto}</span></div>`;
-  }).join('') + '</div>';
+  return '<div class="ros-history">' + entries.map(e =>
+    `<div class="ros-history-item${e.isComment ? ' ros-history-comment' : ''}"><span class="ros-history-date">${fmt(e.timestamp)}</span><span>${e.html}</span></div>`
+  ).join('') + '</div>';
 }
 
 // Data em que o ROS entrou em status "Concluído" pela última vez, usada pra
@@ -1093,12 +1124,20 @@ function rosDetailBodyHtml(item){
         <div class="ros-field-label">${t('field_historico')}</div>
         ${historyHtmlFor(item)}
       </div>
+      ${ADMIN_MODE ? `
+      <div class="ros-comment-box">
+        <div class="ros-field-label">${t('add_comment_label')}</div>
+        <textarea id="rosCommentInput" placeholder="${t('add_comment_placeholder')}"></textarea>
+        <button type="button" class="btn-save" id="rosCommentSaveBtn" data-ros-id="${item.id}">${t('add_comment_btn')}</button>
+        <div class="save-note" id="rosCommentNote"></div>
+      </div>` : ''}
     </div>
   `;
 }
 
 function openRosDetail(item, opts){
   opts = opts || {};
+  currentOpenRosId = item.id;
   document.getElementById('rosDetailBody').innerHTML = rosDetailBodyHtml(item);
   document.getElementById('rosDetailOverlay').classList.add('show');
   if(opts.pushState !== false){
@@ -1106,6 +1145,7 @@ function openRosDetail(item, opts){
   }
 }
 function closeRosDetail(){
+  currentOpenRosId = null;
   document.getElementById('rosDetailOverlay').classList.remove('show');
   if(location.hash.startsWith('#ros-')){
     history.replaceState(null, '', location.pathname + location.search);
@@ -1125,17 +1165,45 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Botão de copiar o link direto pra esse ROS específico (ex.: pra mandar no WhatsApp)
-document.getElementById('rosDetailBody').addEventListener('click', (e) => {
-  const btn = e.target.closest('#rosCopyLinkBtn');
-  if(!btn) return;
-  const idMatch = location.hash.match(/^#ros-(\d+)$/);
-  const url = location.origin + location.pathname + (idMatch ? location.hash : '');
-  navigator.clipboard.writeText(url).then(() => {
-    btn.classList.add('copied');
-    const original = btn.innerHTML;
-    btn.innerHTML = '✓';
-    setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1400);
-  }).catch(() => {});
+document.getElementById('rosDetailBody').addEventListener('click', async (e) => {
+  const copyBtn = e.target.closest('#rosCopyLinkBtn');
+  if(copyBtn){
+    const idMatch = location.hash.match(/^#ros-(\d+)$/);
+    const url = location.origin + location.pathname + (idMatch ? location.hash : '');
+    navigator.clipboard.writeText(url).then(() => {
+      copyBtn.classList.add('copied');
+      const original = copyBtn.innerHTML;
+      copyBtn.innerHTML = '✓';
+      setTimeout(() => { copyBtn.innerHTML = original; copyBtn.classList.remove('copied'); }, 1400);
+    }).catch(() => {});
+    return;
+  }
+
+  const saveBtn = e.target.closest('#rosCommentSaveBtn');
+  if(saveBtn){
+    const rosId = Number(saveBtn.dataset.rosId);
+    const input = document.getElementById('rosCommentInput');
+    const note = document.getElementById('rosCommentNote');
+    const texto = (input.value || '').trim();
+    if(!texto) return;
+    note.textContent = t('saving');
+    try{
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ type: 'comentario', rosId: rosId, comentario: texto })
+      });
+      const resData = await res.json();
+      if(resData.ok){
+        input.value = '';
+        note.textContent = '';
+        await loadRos();
+      } else {
+        note.textContent = t('error_label') + ' ' + (resData.error || t('error_unknown'));
+      }
+    }catch(err){
+      note.textContent = t('error_connection');
+    }
+  }
 });
 
 // Se a página foi aberta com #ros-123 no link, abre os detalhes desse ROS sozinho.
@@ -1175,8 +1243,15 @@ async function loadRos(){
     const data = await res.json();
     allRos = Array.isArray(data.ros) ? data.ros : [];
     allHistoricoRos = Array.isArray(data.historicoRos) ? data.historicoRos : [];
+    allComentariosRos = Array.isArray(data.comentariosRos) ? data.comentariosRos : [];
     renderRos();
     tryAutoOpenFromHash();
+    // se o modal de detalhes estiver aberto, atualiza o conteúdo (pra refletir
+    // um comentário recém-adicionado, ou mudanças de outro admin)
+    if(currentOpenRosId !== null){
+      const openItem = allRos.find(r => r.id === currentOpenRosId);
+      if(openItem) document.getElementById('rosDetailBody').innerHTML = rosDetailBodyHtml(openItem);
+    }
     const trendOverlay = document.getElementById('rosTrendOverlay');
     if(trendOverlay && trendOverlay.classList.contains('show')) renderRosTrendChart();
   }catch(err){
