@@ -21,6 +21,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -664,6 +665,13 @@
     color:#fff; font-family:'Inter',sans-serif; font-size:14px;
   }
   #perfSelect:focus{outline:2px solid var(--blue); outline-offset:1px;}
+  /* O menu suspenso nativo do navegador costuma forçar fundo branco na lista de
+     opções (ignorando o tema escuro da página) — sem isso, o texto branco do
+     select fica invisível ali dentro. Aqui garantimos que as opções sempre
+     apareçam legíveis, com texto escuro sobre esse fundo claro forçado. */
+  #perfSelect option{
+    color:var(--navy); background:#fff;
+  }
   .perf-card{
     margin-top:18px; padding:18px; border-radius:12px;
     background:rgba(255,255,255,0.04); border:1px solid var(--line);
@@ -1591,6 +1599,37 @@ function setLiveState(online){
 // necessário pro placar (Dados+Meta) — ROS e Histórico ficam de fora daqui pra não
 // pesar essa consulta, que roda a cada poucos segundos; quem precisa deles busca
 // separadamente (ver fetchRosOnly / fetchAnaliseData).
+// Cache local (localStorage): guarda os últimos dados vistos, pra mostrar na
+// hora assim que a página abre — sem precisar esperar a planilha responder de
+// novo. A busca de verdade acontece igual, só que por trás, e atualiza a tela
+// assim que chegar (a pessoa nunca vê tela vazia enquanto espera).
+const CACHE_KEY_PLACAR = 'placarCacheV1';
+function loadCachedData(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY_PLACAR);
+    if(!raw) return false;
+    const cached = JSON.parse(raw);
+    if(!cached || !Array.isArray(cached.filial) || !Array.isArray(cached.matriz)) return false;
+    data.filial = cached.filial;
+    data.matriz = cached.matriz;
+    data.diasSemAcidentesDesde = cached.diasSemAcidentesDesde || '';
+    updatedAt.filial = cached.updatedAtValue || null;
+    updatedAt.matriz = cached.updatedAtValue || null;
+    return true;
+  }catch(e){ return false; }
+}
+function saveCachedData(){
+  try{
+    localStorage.setItem(CACHE_KEY_PLACAR, JSON.stringify({
+      filial: data.filial,
+      matriz: data.matriz,
+      diasSemAcidentesDesde: data.diasSemAcidentesDesde,
+      updatedAtValue: updatedAt.filial,
+      savedAt: new Date().toISOString()
+    }));
+  }catch(e){ /* localStorage indisponível (modo privado, etc.) — sem problema, só não cacheia */ }
+}
+
 async function fetchAllData(){
   try{
     const res = await fetch(API_URL + '?tipo=placar', { method:'GET' });
@@ -1602,6 +1641,7 @@ async function fetchAllData(){
     updatedAt.filial = json.updatedAt || null;
     updatedAt.matriz = json.updatedAt || null;
     setLiveState(true);
+    saveCachedData();
     return true;
   }catch(e){
     console.error('Não foi possível carregar os dados da planilha:', e);
@@ -2270,7 +2310,8 @@ async function pollLoop(){
     document.getElementById('updatedAt').textContent = fmtWhen(latestUpdatedAt(currentUnit));
   }
 }
-setInterval(pollLoop, 15000);
+// (o polling do pollLoop agora é controlado por startPolling()/stopPolling(),
+// junto com o do contador de ROS — ver mais abaixo)
 
 /* ---------------- Contador de ROS atrasados (botão "Painel ROS") ---------------- */
 function parseDataFlexivelNav(valor){
@@ -2314,7 +2355,31 @@ async function refreshRosBadge(){
   }
 }
 refreshRosBadge();
-setInterval(refreshRosBadge, 60000);
+
+/* ---------------- Pausa as consultas quando a aba não está visível ----------------
+   Se a pessoa troca de aba pra fazer outra coisa, não faz sentido continuar
+   perguntando pra planilha sem parar — ninguém está olhando. Pausa nesse caso, e
+   quando a pessoa volta pra aba, atualiza na hora e retoma o ritmo normal. */
+let pollIntervalId = null;
+let badgeIntervalId = null;
+function startPolling(){
+  if(!pollIntervalId) pollIntervalId = setInterval(pollLoop, 25000);
+  if(!badgeIntervalId) badgeIntervalId = setInterval(refreshRosBadge, 90000);
+}
+function stopPolling(){
+  if(pollIntervalId){ clearInterval(pollIntervalId); pollIntervalId = null; }
+  if(badgeIntervalId){ clearInterval(badgeIntervalId); badgeIntervalId = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){
+    stopPolling();
+  } else {
+    pollLoop();
+    refreshRosBadge();
+    startPolling();
+  }
+});
+startPolling();
 
 /* ---------------- Admin ---------------- */
 const overlay = document.getElementById('overlay');
@@ -2677,16 +2742,40 @@ function showDiasSemAcidentesBanner(){
 }
 
 async function init(){
-  // tempo mínimo de exibição da tela de abertura, pra marca aparecer mesmo
-  // quando os dados carregam muito rápido — mas nunca trava além de 7s, mesmo se
-  // a planilha demorar ou falhar em responder (o Google Apps Script às vezes "esfria"
-  // depois de um tempo sem uso, e a primeira consulta pode demorar alguns segundos
-  // a mais só nessa hora — 7s dá folga suficiente pra isso sem travar pra sempre
-  // se o backend realmente estiver fora do ar)
-  const minDelay = new Promise(resolve => setTimeout(resolve, 1300));
-  const dataAndDelay = Promise.all([fetchAllData(), minDelay]);
-  const safetyTimeout = new Promise(resolve => setTimeout(resolve, 7000));
-  await Promise.race([dataAndDelay, safetyTimeout]);
+  // A intro só aparece uma vez por sessão do navegador (usa sessionStorage, que
+  // dura até a aba/navegador fechar) — ao navegar pra outra página do site e
+  // voltar, ela não aparece de novo; só volta se fechar e abrir o navegador.
+  const jaViuIntroNestaSessao = sessionStorage.getItem('splashShown') === '1';
+  if(jaViuIntroNestaSessao){
+    document.body.classList.remove('splash-lock');
+    const splashEl = document.getElementById('splash');
+    if(splashEl){ splashEl.style.transition = 'none'; splashEl.classList.add('hide'); }
+  } else {
+    sessionStorage.setItem('splashShown', '1');
+  }
+
+  // Mostra os últimos dados vistos (guardados no navegador) na hora, por trás da
+  // splash — assim, quando ela sumir, já tem alguma coisa pronta na tela, em vez
+  // de ficar tudo vazio esperando a planilha responder de novo.
+  const usouCache = loadCachedData();
+  if(usouCache) renderBoard();
+
+  if(jaViuIntroNestaSessao){
+    // já viu a intro nessa sessão: busca os dados direto, sem o delay artificial
+    // que existe só pra dar tempo da marca aparecer na tela de abertura
+    await fetchAllData();
+  } else {
+    // tempo mínimo de exibição da tela de abertura, pra marca aparecer mesmo
+    // quando os dados carregam muito rápido — mas nunca trava além de 7s, mesmo se
+    // a planilha demorar ou falhar em responder (o Google Apps Script às vezes "esfria"
+    // depois de um tempo sem uso, e a primeira consulta pode demorar alguns segundos
+    // a mais só nessa hora — 7s dá folga suficiente pra isso sem travar pra sempre
+    // se o backend realmente estiver fora do ar)
+    const minDelay = new Promise(resolve => setTimeout(resolve, 1300));
+    const dataAndDelay = Promise.all([fetchAllData(), minDelay]);
+    const safetyTimeout = new Promise(resolve => setTimeout(resolve, 7000));
+    await Promise.race([dataAndDelay, safetyTimeout]);
+  }
 
   // primeira execução (planilha ainda vazia): publica o roteiro oficial de
   // colaboradores (nomes reais, pontuação zerada) direto na Planilha Google
@@ -2695,16 +2784,19 @@ async function init(){
     await saveUnit('matriz', SEED.matriz);
   }
 
-  const mostrandoContador = showDiasSemAcidentesBanner();
   renderBoard();
   pollLoop();
-  // se o banner de "dias sem acidentes" apareceu, dá tempo de sobra pra ele
-  // crescer suavemente, a contagem terminar de animar, e ainda ficar visível
-  // um tempinho antes da splash começar a sumir
-  if(mostrandoContador && !reduceMotion()){
-    await new Promise(resolve => setTimeout(resolve, 3400));
+
+  if(!jaViuIntroNestaSessao){
+    const mostrandoContador = showDiasSemAcidentesBanner();
+    // se o banner de "dias sem acidentes" apareceu, dá tempo de sobra pra ele
+    // crescer suavemente, a contagem terminar de animar, e ainda ficar visível
+    // um tempinho antes da splash começar a sumir
+    if(mostrandoContador && !reduceMotion()){
+      await new Promise(resolve => setTimeout(resolve, 3400));
+    }
+    hideSplash();
   }
-  hideSplash();
   startTips();
   maybeShowAdminWelcome();
 }

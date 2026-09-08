@@ -8,6 +8,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -277,7 +278,10 @@
     color:var(--ink); padding:9px 14px; font-family:'Inter',sans-serif; font-size:12.5px; cursor:pointer;
   }
   .ros-sort-select:focus{outline:2px solid var(--blue); outline-offset:1px;}
-  .ros-sort-select option{background:var(--navy); color:#fff;}
+  /* Alguns navegadores forçam fundo claro na lista suspensa nativa, ignorando o
+     tema escuro — por segurança, o texto das opções fica escuro pra nunca virar
+     "texto branco em fundo branco". */
+  .ros-sort-select option{background:#fff; color:var(--navy);}
 
   .ros-trend-modal{position:relative; max-width:680px;}
   .ros-trend-empty{font-size:12px; color:var(--muted); text-align:center; padding:20px;}
@@ -421,7 +425,7 @@
   .ros-edit-field input:focus, .ros-edit-field select:focus, .ros-edit-field textarea:focus{
     outline:2px solid var(--blue); outline-offset:1px;
   }
-  .ros-edit-field select option{background:var(--navy); color:#fff;}
+  .ros-edit-field select option{background:#fff; color:var(--navy);}
   .ros-add-btn{
     width:100%; padding:10px; margin-bottom:6px; border-radius:8px; border:1px dashed var(--line);
     background:transparent; color:var(--muted); cursor:pointer; font-family:'Inter',sans-serif; font-weight:600; font-size:13px;
@@ -844,6 +848,10 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVB
 let allRos = [];
 let allHistoricoRos = [];
 let allComentariosRos = [];
+// Mostra os últimos ROS vistos (guardados no navegador) já na primeira renderização
+// — antes mesmo da busca de verdade completar — pra não aparecer lista vazia
+// por alguns segundos toda vez que a página abre.
+loadCachedRos();
 let currentOpenRosId = null;
 let currentFilter = 'abertos';
 let searchQuery = '';
@@ -1324,6 +1332,31 @@ document.getElementById('rosGrid').addEventListener('keydown', (e) => {
   card.click();
 });
 
+// Cache local (localStorage): mostra os últimos ROS vistos na hora, assim que a
+// página abre, enquanto a busca de verdade acontece por trás. Evita a lista
+// aparecer vazia por alguns segundos toda vez que alguém abre o link.
+const CACHE_KEY_ROS = 'rosCacheV1';
+function loadCachedRos(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY_ROS);
+    if(!raw) return false;
+    const cached = JSON.parse(raw);
+    if(!cached || !Array.isArray(cached.ros)) return false;
+    allRos = cached.ros;
+    allHistoricoRos = Array.isArray(cached.historicoRos) ? cached.historicoRos : [];
+    allComentariosRos = Array.isArray(cached.comentariosRos) ? cached.comentariosRos : [];
+    return true;
+  }catch(e){ return false; }
+}
+function saveCachedRos(){
+  try{
+    localStorage.setItem(CACHE_KEY_ROS, JSON.stringify({
+      ros: allRos, historicoRos: allHistoricoRos, comentariosRos: allComentariosRos,
+      savedAt: new Date().toISOString()
+    }));
+  }catch(e){ /* localStorage indisponível — sem problema, só não cacheia */ }
+}
+
 async function loadRos(){
   try{
     const res = await fetch(API_URL + '?tipo=ros', { cache: 'no-store' });
@@ -1331,6 +1364,7 @@ async function loadRos(){
     allRos = Array.isArray(data.ros) ? data.ros : [];
     allHistoricoRos = Array.isArray(data.historicoRos) ? data.historicoRos : [];
     allComentariosRos = Array.isArray(data.comentariosRos) ? data.comentariosRos : [];
+    saveCachedRos();
     renderRos();
     tryAutoOpenFromHash();
     // se o modal de detalhes estiver aberto, atualiza o conteúdo (pra refletir
@@ -1356,7 +1390,26 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 loadRos();
-setInterval(loadRos, 30000);
+
+/* ---------------- Pausa as consultas quando a aba não está visível ----------------
+   Se a pessoa troca de aba, não faz sentido continuar perguntando pra planilha
+   sem parar. Pausa nesse caso, e ao voltar pra aba, atualiza na hora e retoma. */
+let rosPollIntervalId = null;
+function startRosPolling(){
+  if(!rosPollIntervalId) rosPollIntervalId = setInterval(loadRos, 45000);
+}
+function stopRosPolling(){
+  if(rosPollIntervalId){ clearInterval(rosPollIntervalId); rosPollIntervalId = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){
+    stopRosPolling();
+  } else {
+    loadRos();
+    startRosPolling();
+  }
+});
+startRosPolling();
 
 /* ---------------- Busca, "Meus ROS" e alternar cards/lista ---------------- */
 const rosSearchInput = document.getElementById('rosSearchInput');
