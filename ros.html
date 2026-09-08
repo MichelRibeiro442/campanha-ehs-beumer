@@ -23,6 +23,14 @@
     --red:#EF4444;
     --green:#22C55E;
     --yellow:#F4BE2C;
+
+    /* Sistema único de cantos e sombras — mesmo vocabulário visual em todos os
+       cards, pra dar sensação de "desenhado por um só", em vez de valores soltos. */
+    --radius-sm:8px;
+    --radius-md:10px;
+    --radius-lg:14px;
+    --shadow-1:0 4px 14px rgba(0,0,0,0.16);
+    --shadow-2:0 10px 26px rgba(0,0,0,0.26);
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -36,16 +44,17 @@
     font-family:'Inter',sans-serif;
   }
 
-  /* Fundo "vivo": manchas de cor se movendo bem devagar atrás de tudo */
+  /* Fundo "vivo": manchas de cor se movendo bem devagar atrás de tudo — discreto
+     de propósito, pra não competir com o conteúdo. */
   .aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
-  .aurora span{position:absolute; border-radius:50%; filter:blur(95px); opacity:0.16; animation:auroraMove ease-in-out infinite;}
-  .aurora span:nth-child(1){width:620px; height:620px; top:-220px; left:-160px; background:radial-gradient(circle, var(--blue), transparent 70%); animation-duration:22s;}
-  .aurora span:nth-child(2){width:540px; height:540px; bottom:-220px; right:-160px; background:radial-gradient(circle, var(--gold), transparent 70%); animation-duration:26s; animation-delay:-7s;}
-  .aurora span:nth-child(3){width:440px; height:440px; top:38%; right:8%; background:radial-gradient(circle, var(--blue-light), transparent 70%); animation-duration:18s; animation-delay:-11s; opacity:0.11;}
+  .aurora span{position:absolute; border-radius:50%; filter:blur(100px); opacity:0.10; animation:auroraMove ease-in-out infinite;}
+  .aurora span:nth-child(1){width:620px; height:620px; top:-220px; left:-160px; background:radial-gradient(circle, var(--blue), transparent 70%); animation-duration:30s;}
+  .aurora span:nth-child(2){width:540px; height:540px; bottom:-220px; right:-160px; background:radial-gradient(circle, var(--gold), transparent 70%); animation-duration:34s; animation-delay:-9s;}
+  .aurora span:nth-child(3){width:440px; height:440px; top:38%; right:8%; background:radial-gradient(circle, var(--blue-light), transparent 70%); animation-duration:24s; animation-delay:-14s; opacity:0.07;}
   @keyframes auroraMove{
     0%,100%{transform:translate(0,0) scale(1);}
-    33%{transform:translate(55px,-45px) scale(1.08);}
-    66%{transform:translate(-45px,35px) scale(0.94);}
+    33%{transform:translate(40px,-32px) scale(1.05);}
+    66%{transform:translate(-32px,26px) scale(0.96);}
   }
   @media (prefers-reduced-motion:reduce){
     .aurora span{animation:none;}
@@ -57,7 +66,7 @@
   header{
     display:flex; align-items:center; justify-content:space-between;
     gap:24px; flex-wrap:wrap;
-    padding-bottom:20px; margin-bottom:26px;
+    padding-bottom:24px; margin-bottom:32px;
     border-bottom:1px solid var(--line);
   }
   .brand{display:flex; align-items:center;}
@@ -85,7 +94,7 @@
   .ros-trend-header-btn.active{background:var(--blue); color:#031A22; border-color:var(--blue);}
 
   /* ---------- Filtros ---------- */
-  .tabs{display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:30px; flex-wrap:wrap;}
+  .tabs{display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:34px; flex-wrap:wrap;}
   .tab{
     display:inline-flex; align-items:center; justify-content:center;
     font-family:'Oswald',sans-serif; font-size:14px; font-weight:500; letter-spacing:0.5px;
@@ -113,11 +122,19 @@
   }
   .ros-card{
     background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
-    border:1px solid var(--line); border-left:4px solid var(--line); border-radius:14px; padding:18px 20px;
+    border:1px solid var(--line); border-left:4px solid var(--line); border-radius:var(--radius-lg); padding:18px 20px;
     display:flex; flex-direction:column; gap:10px;
     cursor:pointer; user-select:none;
     transition:border-color .2s ease, background .2s ease;
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    opacity:0; animation:cardFadeIn .45s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  @keyframes cardFadeIn{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .ros-card, .ros-list-row{animation:none; opacity:1;}
   }
   .ros-card:hover{border-color:rgba(0,159,227,0.4);}
   .ros-card.risk-alto{border-left-color:#EF4444;}
@@ -206,7 +223,7 @@
   }
 
   /* ---------- Barra de busca / Meus ROS / alternar visualização ---------- */
-  .ros-toolbar{display:flex; align-items:center; gap:10px; margin-bottom:22px; flex-wrap:wrap;}
+  .ros-toolbar{display:flex; align-items:center; gap:10px; margin-bottom:28px; flex-wrap:wrap;}
   .ros-search-box{
     flex:1; min-width:200px; display:flex; align-items:center; gap:8px;
     background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:999px;
@@ -265,10 +282,11 @@
     display:grid; grid-template-columns:80px 112px 1fr 1.4fr 150px 130px;
     gap:14px; align-items:center;
     background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
-    border:1px solid var(--line); border-left:4px solid var(--line); border-radius:10px;
+    border:1px solid var(--line); border-left:4px solid var(--line); border-radius:var(--radius-md);
     padding:12px 16px; cursor:pointer;
     transition:border-color .2s ease;
     backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    opacity:0; animation:cardFadeIn .4s cubic-bezier(.22,1,.36,1) forwards;
   }
   .ros-list-row:hover{border-color:rgba(0,159,227,0.4);}
   .ros-list-row.risk-alto{border-left-color:#EF4444;}
@@ -288,7 +306,7 @@
 
   .footer-credit{
     display:flex; flex-direction:column; align-items:center; gap:10px;
-    padding-top:12px; margin-top:20px; border-top:1px solid var(--line);
+    padding-top:16px; margin-top:32px; border-top:1px solid var(--line);
     font-size:10.5px; letter-spacing:0.4px; color:var(--muted); opacity:0.8;
     text-align:center;
   }
@@ -319,8 +337,9 @@
   }
   .overlay.show{display:flex;}
   .modal{
-    background:var(--navy); border:1px solid var(--line); border-radius:16px;
+    background:var(--navy); border:1px solid var(--line); border-radius:var(--radius-lg);
     width:100%; max-width:640px; max-height:82vh; overflow:auto; padding:26px;
+    box-shadow:var(--shadow-2);
   }
   .modal h2{font-family:'Oswald',sans-serif; margin:0 0 4px; font-size:20px;}
 
@@ -333,10 +352,10 @@
   }
   .admin-tab.active{background:var(--blue); color:#031A22; border-color:var(--blue);}
 
-  .analysis-section{margin-bottom:20px;}
+  .analysis-section{margin-bottom:26px;}
   .analysis-section h3{font-family:'Oswald',sans-serif; font-size:14px; margin:0 0 10px; color:var(--blue-light); letter-spacing:0.3px;}
   .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px;}
-  .stat-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
+  .stat-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; box-shadow:var(--shadow-1);}
   .stat-card .stat-value{font-family:'Oswald',sans-serif; font-size:21px; font-weight:700; color:#fff;}
   .stat-card .stat-label{font-size:10.5px; color:var(--muted); letter-spacing:0.2px; margin-top:2px;}
   .analysis-note{font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4;}
@@ -372,7 +391,7 @@
 
   /* ---------- Formulário de cadastro manual de ROS ---------- */
   .ros-edit-list{display:flex; flex-direction:column; gap:14px; margin-bottom:12px; max-height:50vh; overflow:auto; padding-right:4px;}
-  .ros-edit-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:10px; padding:14px;}
+  .ros-edit-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px;}
   .ros-edit-card-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .ros-edit-card-title{font-family:'Oswald',sans-serif; font-weight:700; font-size:13px; color:var(--blue-light); letter-spacing:0.3px;}
   .ros-edit-remove{
@@ -1079,19 +1098,20 @@ function renderRos(){
 
   if(viewMode === 'list'){
     grid.className = 'ros-list';
-    grid.innerHTML = filtered.map(item => rosListRowHtml(item)).join('');
+    grid.innerHTML = filtered.map((item, idx) => rosListRowHtml(item, idx)).join('');
     return;
   }
 
   grid.className = 'ros-grid';
-  grid.innerHTML = filtered.map(item => rosCardHtml(item)).join('');
+  grid.innerHTML = filtered.map((item, idx) => rosCardHtml(item, idx)).join('');
 }
 
-function rosCardHtml(item){
+function rosCardHtml(item, idx){
   const dias = diasEmAberto(item);
   const resolvido = dataConclusaoFor(item);
+  const delay = Math.min(idx || 0, 14) * 0.04;
   return `
-    <div class="ros-card ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
+    <div class="ros-card ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0" style="animation-delay:${delay.toFixed(3)}s">
       <div class="ros-top">
         <div class="ros-top-left">
           <span class="ros-num">ROS #${item.id}</span>
@@ -1116,9 +1136,10 @@ function rosCardHtml(item){
   `;
 }
 
-function rosListRowHtml(item){
+function rosListRowHtml(item, idx){
+  const delay = Math.min(idx || 0, 14) * 0.04;
   return `
-    <div class="ros-list-row ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0">
+    <div class="ros-list-row ${riskClass(item.nivelRisco)}" data-id="${item.id}" tabindex="0" style="animation-delay:${delay.toFixed(3)}s">
       <div class="ros-list-cell muted">${escapeHtml(item.unidade) || '—'}</div>
       <div class="ros-list-cell"><span class="ros-status ${statusClass(item.status)}">${escapeHtml(statusLabel(item.status))}</span></div>
       <div class="ros-list-cell">${escapeHtml(item.local) || '—'}</div>

@@ -35,6 +35,14 @@
     --ink:#EAF7FC;
     --muted:#7FAFC2;
     --line:rgba(255,255,255,0.09);
+
+    /* Sistema único de cantos e sombras — mesmo vocabulário visual em todos os
+       cards, pra dar sensação de "desenhado por um só", em vez de valores soltos. */
+    --radius-sm:8px;
+    --radius-md:10px;
+    --radius-lg:14px;
+    --shadow-1:0 4px 14px rgba(0,0,0,0.16);
+    --shadow-2:0 10px 26px rgba(0,0,0,0.26);
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -60,16 +68,17 @@
     pointer-events:none;
   }
 
-  /* Fundo "vivo": manchas de cor se movendo bem devagar atrás de tudo */
+  /* Fundo "vivo": manchas de cor se movendo bem devagar atrás de tudo — discreto
+     de propósito, pra não competir com o conteúdo. */
   .aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
-  .aurora span{position:absolute; border-radius:50%; filter:blur(95px); opacity:0.16; animation:auroraMove ease-in-out infinite;}
-  .aurora span:nth-child(1){width:620px; height:620px; top:-220px; left:-160px; background:radial-gradient(circle, var(--blue), transparent 70%); animation-duration:22s;}
-  .aurora span:nth-child(2){width:540px; height:540px; bottom:-220px; right:-160px; background:radial-gradient(circle, var(--gold), transparent 70%); animation-duration:26s; animation-delay:-7s;}
-  .aurora span:nth-child(3){width:440px; height:440px; top:38%; right:8%; background:radial-gradient(circle, var(--blue-light), transparent 70%); animation-duration:18s; animation-delay:-11s; opacity:0.11;}
+  .aurora span{position:absolute; border-radius:50%; filter:blur(100px); opacity:0.10; animation:auroraMove ease-in-out infinite;}
+  .aurora span:nth-child(1){width:620px; height:620px; top:-220px; left:-160px; background:radial-gradient(circle, var(--blue), transparent 70%); animation-duration:30s;}
+  .aurora span:nth-child(2){width:540px; height:540px; bottom:-220px; right:-160px; background:radial-gradient(circle, var(--gold), transparent 70%); animation-duration:34s; animation-delay:-9s;}
+  .aurora span:nth-child(3){width:440px; height:440px; top:38%; right:8%; background:radial-gradient(circle, var(--blue-light), transparent 70%); animation-duration:24s; animation-delay:-14s; opacity:0.07;}
   @keyframes auroraMove{
     0%,100%{transform:translate(0,0) scale(1);}
-    33%{transform:translate(55px,-45px) scale(1.08);}
-    66%{transform:translate(-45px,35px) scale(0.94);}
+    33%{transform:translate(40px,-32px) scale(1.05);}
+    66%{transform:translate(-32px,26px) scale(0.96);}
   }
   @media (prefers-reduced-motion:reduce){
     .aurora span{animation:none;}
@@ -130,7 +139,7 @@
   header{
     display:flex; align-items:center; justify-content:space-between;
     gap:24px; flex-wrap:wrap;
-    padding-bottom:20px; margin-bottom:26px;
+    padding-bottom:24px; margin-bottom:34px;
     border-bottom:1px solid var(--line);
   }
   .brand{display:flex; align-items:center;}
@@ -168,10 +177,10 @@
   .clock .date{font-size:12px; color:var(--muted); margin-top:2px;}
 
   /* ---------- Tabs ---------- */
-  .tabs{display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:24px; flex-wrap:wrap;}
+  .tabs{display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:28px; flex-wrap:wrap;}
 
   /* ---------- Busca ---------- */
-  .search-row{display:flex; justify-content:center; align-items:center; gap:12px; margin-bottom:34px; flex-wrap:wrap;}
+  .search-row{display:flex; justify-content:center; align-items:center; gap:12px; margin-bottom:42px; flex-wrap:wrap;}
   .search-box{
     display:flex; align-items:center; gap:8px;
     background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:999px;
@@ -252,17 +261,31 @@
   }
   .place{
     background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
-    border:1px solid var(--line); border-radius:14px;
+    border:1px solid var(--line); border-radius:var(--radius-lg);
     padding:22px 14px 20px; text-align:center; position:relative;
-    transition:transform .5s cubic-bezier(.22,1,.36,1);
+    transition:transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    --podium-y:0px; --lift:0px; --zoom:1;
+    transform:translateY(calc(var(--podium-y) + var(--lift))) scale(var(--zoom));
+    cursor:default;
+    opacity:0; animation:podiumFadeIn .6s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  @keyframes podiumFadeIn{ from{opacity:0;} to{opacity:1;} }
+  @media (prefers-reduced-motion:reduce){
+    .place{animation:none; opacity:1;}
   }
   /* Profundidade de pódio: o 1º lugar fica mais alto, o 3º mais baixo — como
      degraus de verdade — com um "bloco" colorido embaixo de cada card simulando
-     a altura do pedestal. */
-  .place.p1{z-index:3; transform:translateY(-14px);}
-  .place.p2{z-index:2; transform:translateY(0);}
-  .place.p3{z-index:1; transform:translateY(8px);}
+     a altura do pedestal. Ao passar o mouse, o card sobe um pouco mais e cresce
+     de leve, além do brilho da sombra intensificar. */
+  .place.p1{z-index:3; --podium-y:-14px; animation-delay:.1s;}
+  .place.p2{z-index:2; --podium-y:0px; animation-delay:0s;}
+  .place.p3{z-index:1; --podium-y:8px; animation-delay:.2s;}
+  .place.p1:hover, .place.p2:hover, .place.p3:hover{--lift:-9px; --zoom:1.035; z-index:5;}
+  .place.p1:hover{box-shadow:0 18px 36px rgba(244,190,44,0.38), inset 0 1px 0 rgba(255,255,255,0.16);}
+  .place.p2:hover{box-shadow:0 18px 32px rgba(203,217,223,0.30), inset 0 1px 0 rgba(255,255,255,0.14);}
+  .place.p3:hover{box-shadow:0 18px 32px rgba(222,154,78,0.32), inset 0 1px 0 rgba(255,255,255,0.14);}
+  .place:hover .medal{transform:scale(1.08); transition:transform .3s cubic-bezier(.22,1,.36,1);}
   .place::after{
     content:''; position:absolute; left:10%; right:10%; border-radius:0 0 8px 8px;
     pointer-events:none;
@@ -286,6 +309,7 @@
     width:46px; height:46px; border-radius:50%; margin:0 auto 12px;
     display:flex; align-items:center; justify-content:center;
     font-family:'Oswald',sans-serif; font-weight:700; font-size:18px; color:#031A22;
+    transition:transform .3s cubic-bezier(.22,1,.36,1);
   }
   .p1 .medal{background:var(--gold); box-shadow:0 0 22px rgba(244,190,44,0.55);}
   .p2 .medal{background:var(--silver);}
@@ -411,6 +435,14 @@
     gap:16px; padding:13px 22px 13px 20px; border-bottom:1px solid var(--line);
     transition:background .5s ease;
     backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    opacity:0; animation:cardFadeIn .5s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  @keyframes cardFadeIn{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .row{animation:none; opacity:1;}
   }
   .row:nth-child(odd){background:rgba(255,255,255,0.02);}
   .row .pos{font-family:'Oswald',sans-serif; color:var(--muted); font-size:15px;}
@@ -430,7 +462,7 @@
 
   footer{
     display:flex; flex-direction:column; gap:12px;
-    margin-top:26px; color:var(--muted); font-size:12px;
+    margin-top:38px; color:var(--muted); font-size:12px;
   }
   .footer-top{display:flex; justify-content:space-between; align-items:center;}
   .status-line{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
@@ -487,27 +519,27 @@
   }
   .admin-tab.active{background:var(--blue); color:#031A22; border-color:var(--blue);}
 
-  .analysis-section{margin-bottom:20px;}
+  .analysis-section{margin-bottom:26px;}
   .analysis-section h3{font-family:'Oswald',sans-serif; font-size:14px; margin:0 0 10px; color:var(--blue-light); letter-spacing:0.3px;}
 
   .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
-  .stat-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
+  .stat-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; box-shadow:var(--shadow-1);}
   .stat-card .stat-value{font-family:'Oswald',sans-serif; font-size:21px; font-weight:700; color:#fff;}
   .stat-card .stat-label{font-size:10.5px; color:var(--muted); letter-spacing:0.2px; margin-top:2px;}
 
   .ros-mini-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
-  .ros-mini-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:8px; padding:8px 4px; text-align:center;}
+  .ros-mini-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 4px; text-align:center; box-shadow:var(--shadow-1);}
   .ros-mini-card .val{font-family:'Oswald',sans-serif; font-weight:700; font-size:17px;}
   .ros-mini-card .lbl{font-size:8.8px; color:var(--muted); margin-top:2px; letter-spacing:0.2px;}
 
   .noscore-cols{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  .noscore-col{background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:10px; padding:10px 12px; max-height:150px; overflow:auto;}
+  .noscore-col{background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:var(--radius-md); padding:10px 12px; max-height:150px; overflow:auto;}
   .noscore-col .col-title{font-size:12px; font-weight:700; color:var(--ink); margin-bottom:6px;}
   .noscore-col ul{margin:0; padding-left:18px; font-size:12px; color:var(--muted); line-height:1.6;}
   .noscore-empty{font-size:12px; color:var(--muted); font-style:italic;}
 
   .engage-compare{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  .engage-card{background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:10px; padding:12px 14px; position:relative;}
+  .engage-card{background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; position:relative; box-shadow:var(--shadow-1);}
   .engage-card.winner{border-color:rgba(244,190,44,0.6); background:rgba(244,190,44,0.08);}
   .engage-card .engage-unit{font-family:'Oswald',sans-serif; font-weight:700; font-size:14px; color:#fff;}
   .engage-card .engage-crown{position:absolute; top:10px; right:12px; font-size:14px;}
@@ -530,8 +562,9 @@
   }
   .overlay.show{display:flex;}
   .modal{
-    background:var(--navy); border:1px solid var(--line); border-radius:16px;
+    background:var(--navy); border:1px solid var(--line); border-radius:var(--radius-lg);
     width:100%; max-width:560px; max-height:82vh; overflow:auto; padding:26px;
+    box-shadow:var(--shadow-2);
   }
   .modal h2{font-family:'Oswald',sans-serif; margin:0 0 4px; font-size:20px;}
   .modal .sub{color:var(--muted); font-size:13px; margin-bottom:18px;}
@@ -1929,13 +1962,14 @@ function renderBoard(){
   const filteredRest = q.length>0 ? rest.filter(p=>matches(p.name)) : rest;
 
   let listHtml = '';
-  filteredRest.forEach((p)=>{
+  filteredRest.forEach((p, idx)=>{
     const pct = Math.max(4, Math.round((p.points/leaderPts)*100));
     const unitTag = p.unit ? `<span class="unit-tag-inline">${escapeHtml(p.unit)}</span>` : '';
     const tier = tierBadgeHtml(p.points, false);
     const change = rankChangeHtml(posKey(p.name), p.pos, false);
+    const delay = Math.min(idx, 14) * 0.035;
     listHtml += `
-      <div class="row match" data-celebrate="${escapeHtml(posKey(p.name))}">
+      <div class="row match" data-celebrate="${escapeHtml(posKey(p.name))}" style="animation-delay:${delay.toFixed(3)}s">
         <div class="pos">${p.pos}º</div>
         <div class="who">${escapeHtml(p.name)} ${unitTag}${tier}${change}</div>
         <div class="pts">${p.points} pts</div>
