@@ -8,7 +8,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --navy-deep:#001821;
@@ -361,6 +361,32 @@
   .ros-add-btn:hover{color:var(--blue-light); border-color:var(--blue-light);}
   .ros-edit-empty{font-size:12px; color:var(--muted); text-align:center; padding:18px; font-style:italic;}
 
+  /* ---------- Relatório de impressão ---------- */
+  .print-only{display:none;}
+  @media print{
+    body{background:#fff !important; color:#111 !important;}
+    body::before{display:none;}
+    .aurora, .particles, .scanline, .lang-switch, .header-actions .back-btn, .tabs, .ros-toolbar,
+    .footer-credit, .overlay, .ros-grid, .ros-list, #emptyState, .badge, .gear-wrap{
+      display:none !important;
+    }
+    header{border-bottom:2px solid #ccc;}
+    .campaign h1, .campaign p{color:#111 !important; text-shadow:none !important;}
+    .brand-chip img{filter:none !important;}
+    .print-only{display:block !important; color:#111;}
+    .print-title{font-family:'Oswald',sans-serif; font-size:20px; font-weight:700; margin:18px 0 2px;}
+    .print-meta{font-size:11px; color:#555; margin-bottom:16px;}
+    .print-table{width:100%; border-collapse:collapse; font-size:11px;}
+    .print-table th, .print-table td{border:1px solid #ccc; padding:6px 8px; text-align:left; vertical-align:top;}
+    .print-table th{background:#eee; font-family:'Oswald',sans-serif; font-size:10px; text-transform:uppercase;}
+    .print-status{display:inline-block; padding:1px 7px; border-radius:999px; font-size:9.5px; font-weight:700; border:1px solid #999;}
+    .print-status-aberto{background:#fde2e2; border-color:#e88;}
+    .print-status-andamento{background:#fff3cf; border-color:#dba;}
+    .print-status-concluido{background:#e1f7e1; border-color:#8c8;}
+    .print-overdue{color:#c0392b; font-weight:700;}
+    @page{margin:16mm;}
+  }
+
   /* ---------- Seletor de idioma (discreto) ---------- */
   .lang-switch{display:flex; align-items:center; gap:4px;}
   .lang-btn{
@@ -399,6 +425,14 @@
           <path d="M7 15l4-6 4 3 5-8"></path>
         </svg>
         <span data-i18n="trend_btn">Tendência</span>
+      </button>
+      <button type="button" class="back-btn" id="rosPrintBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9V2h12v7"></path>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        <span data-i18n="print_report">Imprimir relatório</span>
       </button>
       <a class="back-btn" href="./index.html">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -463,6 +497,8 @@
 
   <div id="rosGrid" class="ros-grid"></div>
   <div id="emptyState" class="empty-state" style="display:none;" data-i18n="empty_default">Nenhum ROS encontrado para esse filtro.</div>
+
+  <div id="printReportArea" class="print-only"></div>
 
   <div class="footer-credit">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -566,6 +602,10 @@ const I18N = {
     analise_participation_note:'Mais pessoas reportando é sinal positivo — indica que a equipe se sente à vontade pra apontar desvios.',
     saving:'Salvando...', saved_ros:(n)=>`Salvo! ${n} ROS publicados.`, error_label:'Erro:', error_unknown:'falha desconhecida', error_connection:'Erro de conexão ao salvar.',
     my_ros_prompt:'Qual o seu nome, exatamente como aparece em "Aberto por" nos ROS?',
+    print_report:'Imprimir relatório', print_title:'Relatório de ROS — Desvios & Planos de Ação',
+    print_generated_on:(d)=>`Gerado em ${d}`, print_total_items:(n)=>`${n} ROS listado${n===1?'':'s'}`,
+    print_col_id:'#', print_col_unit:'Unidade', print_col_status:'Status', print_col_risk:'Risco',
+    print_col_local:'Local', print_col_desc:'Descrição', print_col_opened_by:'Aberto por', print_col_deadline:'Prazo',
   },
   en: {
     trend_btn:'Trend', back_to_board:'Back to dashboard',
@@ -605,6 +645,10 @@ const I18N = {
     analise_participation_note:'More people reporting is a positive sign — it shows the team feels comfortable flagging deviations.',
     saving:'Saving...', saved_ros:(n)=>`Saved! ${n} report${n===1?'':'s'} published.`, error_label:'Error:', error_unknown:'unknown failure', error_connection:'Connection error while saving.',
     my_ros_prompt:'What\'s your name, exactly as it appears in "Reported by" on reports?',
+    print_report:'Print report', print_title:'Incident Report — Deviations & Action Plans',
+    print_generated_on:(d)=>`Generated on ${d}`, print_total_items:(n)=>`${n} report${n===1?'':'s'} listed`,
+    print_col_id:'#', print_col_unit:'Unit', print_col_status:'Status', print_col_risk:'Risk',
+    print_col_local:'Location', print_col_desc:'Description', print_col_opened_by:'Reported by', print_col_deadline:'Deadline',
   },
   de: {
     trend_btn:'Trend', back_to_board:'Zurück zum Dashboard',
@@ -644,6 +688,10 @@ const I18N = {
     analise_participation_note:'Mehr Meldungen von mehr Personen sind ein positives Zeichen — es zeigt, dass sich das Team wohlfühlt, Abweichungen zu melden.',
     saving:'Wird gespeichert...', saved_ros:(n)=>`Gespeichert! ${n} Meldung${n===1?'':'en'} veröffentlicht.`, error_label:'Fehler:', error_unknown:'unbekannter Fehler', error_connection:'Verbindungsfehler beim Speichern.',
     my_ros_prompt:'Wie lautet Ihr Name, genau wie er bei "Gemeldet von" in den Meldungen erscheint?',
+    print_report:'Bericht drucken', print_title:'Meldungsbericht — Abweichungen & Maßnahmenpläne',
+    print_generated_on:(d)=>`Erstellt am ${d}`, print_total_items:(n)=>`${n} Meldung${n===1?'':'en'} aufgelistet`,
+    print_col_id:'#', print_col_unit:'Einheit', print_col_status:'Status', print_col_risk:'Risiko',
+    print_col_local:'Ort', print_col_desc:'Beschreibung', print_col_opened_by:'Gemeldet von', print_col_deadline:'Frist',
   }
 };
 let currentLang = localStorage.getItem('campanhaLang') || 'pt';
@@ -683,6 +731,8 @@ const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === 
 if(!ADMIN_MODE){
   const gearEl = document.getElementById('gearBtn');
   if(gearEl) gearEl.style.display = 'none';
+  const printEl = document.getElementById('rosPrintBtn');
+  if(printEl) printEl.style.display = 'none';
 }
 
 // Mesmo backend (Apps Script) já usado pelo placar de pontos.
@@ -1288,6 +1338,59 @@ document.getElementById('rosTrendCloseBtn').addEventListener('click', () => {
 });
 rosTrendOverlay.addEventListener('click', (e) => {
   if(e.target === rosTrendOverlay) rosTrendOverlay.classList.remove('show');
+});
+
+/* ---------------- Relatório de impressão ---------------- */
+function buildPrintReport(){
+  const area = document.getElementById('printReportArea');
+  const preSorted = allRos
+    .filter(item => matchesFilter(item, currentFilter))
+    .filter(item => matchesSearch(item, searchQuery))
+    .filter(item => matchesMeuNome(item, meuNomeFilter))
+    .filter(item => matchesUnit(item, unitFilter));
+  const list = sortMode === 'recent' ? sortRosByRecent(preSorted) : sortRosByPriority(preSorted);
+
+  const hoje = new Date().toLocaleDateString(currentLang === 'pt' ? 'pt-BR' : currentLang, { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  const rows = list.map(item => {
+    const atrasado = isAtrasado(item);
+    return `
+      <tr>
+        <td>${item.id}</td>
+        <td>${escapeHtml(item.unidade) || '—'}</td>
+        <td><span class="print-status print-status-${statusClass(item.status).replace('status-','')}">${escapeHtml(statusLabel(item.status))}</span></td>
+        <td>${escapeHtml(riskLabel(item.nivelRisco))}</td>
+        <td>${escapeHtml(item.local) || '—'}</td>
+        <td>${escapeHtml(item.descricao) || '—'}</td>
+        <td>${escapeHtml(item.abertoPor) || '—'}</td>
+        <td>${escapeHtml(item.prazo) || '—'}${atrasado ? ` <span class="print-overdue">(${t('atrasado')})</span>` : ''}</td>
+      </tr>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="print-title">${t('print_title')}</div>
+    <div class="print-meta">${tf('print_generated_on', hoje)} · ${tf('print_total_items', list.length)}</div>
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th>${t('print_col_id')}</th>
+          <th>${t('print_col_unit')}</th>
+          <th>${t('print_col_status')}</th>
+          <th>${t('print_col_risk')}</th>
+          <th>${t('print_col_local')}</th>
+          <th>${t('print_col_desc')}</th>
+          <th>${t('print_col_opened_by')}</th>
+          <th>${t('print_col_deadline')}</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+document.getElementById('rosPrintBtn').addEventListener('click', () => {
+  buildPrintReport();
+  setTimeout(() => window.print(), 80);
 });
 
 /* ---------------- Painel admin (formulário manual) ---------------- */

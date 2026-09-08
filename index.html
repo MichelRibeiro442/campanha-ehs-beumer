@@ -21,7 +21,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --navy-deep:#001821;
@@ -698,6 +698,29 @@
     .row{grid-template-columns:32px 1fr 70px;}
     .row .pts{font-size:14px;}
   }
+
+  /* ---------- Relatório de impressão ---------- */
+  .print-only{display:none;}
+  @media print{
+    body{background:#fff !important; color:#111 !important;}
+    body::before{display:none;}
+    .splash, .tip-bubble, .hse-badge, .tools-btn-soon, .lang-switch, .clock, .tabs, .search-row,
+    #board, footer, .overlay{
+      display:none !important;
+    }
+    header{border-bottom:2px solid #ccc;}
+    .campaign h1, .campaign p{color:#111 !important; text-shadow:none !important;}
+    .brand-chip img{filter:none !important;}
+    .print-only{display:block !important; color:#111;}
+    .print-title{font-family:'Oswald',sans-serif; font-size:20px; font-weight:700; margin:18px 0 2px;}
+    .print-meta{font-size:11px; color:#555; margin-bottom:16px;}
+    .print-table{width:100%; border-collapse:collapse; font-size:11px; margin-bottom:22px;}
+    .print-table th, .print-table td{border:1px solid #ccc; padding:6px 8px; text-align:left; vertical-align:top;}
+    .print-table th{background:#eee; font-family:'Oswald',sans-serif; font-size:10px; text-transform:uppercase;}
+    .print-tier{display:inline-block; padding:1px 7px; border-radius:999px; font-size:9.5px; font-weight:700; border:1px solid #999; background:#f2f2f2;}
+    .print-unit-title{font-family:'Oswald',sans-serif; font-size:14px; font-weight:700; margin:14px 0 6px;}
+    @page{margin:16mm;}
+  }
 </style>
 </head>
 <body class="splash-lock">
@@ -793,95 +816,105 @@
         <path d="M12 20V4"></path>
         <path d="M6 20v-6"></path>
       </svg>
-      Meu desempenho
+      <span data-i18n="my_performance_btn">Meu desempenho</span>
     </button>
-    <button class="info-btn" id="infoBtn" title="Como funciona a pontuação">
+    <button class="info-btn" id="infoBtn" data-i18n-title="how_it_works_btn" title="Como funciona a pontuação">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="16" x2="12" y2="12"></line>
         <line x1="12" y1="8" x2="12.01" y2="8"></line>
       </svg>
-      Como funciona
+      <span data-i18n="how_it_works_btn">Como funciona</span>
+    </button>
+    <button class="info-btn" id="printReportBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9V2h12v7"></path>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+      </svg>
+      <span data-i18n="print_report">Imprimir relatório</span>
     </button>
   </div>
 
   <div class="overlay" id="perfOverlay">
     <div class="modal">
-      <h2>Meu desempenho</h2>
-      <div class="sub">Selecione seu nome pra ver sua posição e o quanto falta pra subir no ranking.</div>
+      <h2 data-i18n="perf_title">Meu desempenho</h2>
+      <div class="sub" data-i18n="perf_sub">Selecione seu nome pra ver sua posição e o quanto falta pra subir no ranking.</div>
 
       <select id="perfSelect">
-        <option value="">Selecione seu nome...</option>
+        <option value="" data-i18n="perf_select_default">Selecione seu nome...</option>
       </select>
 
       <div id="perfResult"></div>
 
       <div class="modal-actions">
-        <button class="btn-close" id="perfCloseBtn">Fechar</button>
+        <button class="btn-close" id="perfCloseBtn" data-i18n="modal_close">Fechar</button>
       </div>
     </div>
   </div>
 
   <div class="overlay" id="infoOverlay">
     <div class="modal">
-      <h2>Como funciona a pontuação</h2>
-      <div class="sub">Cada ação de segurança soma pontos pro seu total. Confira o valor de cada critério:</div>
+      <h2 data-i18n="how_title">Como funciona a pontuação</h2>
+      <div class="sub" data-i18n="how_sub">Cada ação de segurança soma pontos pro seu total. Confira o valor de cada critério:</div>
 
       <div class="info-group">
         <div class="info-badge pts5">5 pts</div>
         <ul>
-          <li>Realização de exames periódicos da empresa no prazo</li>
-          <li>Participação em palestras, eventos e campanhas de segurança do trabalho</li>
+          <li data-i18n="how_5pts_1">Realização de exames periódicos da empresa no prazo</li>
+          <li data-i18n="how_5pts_2">Participação em palestras, eventos e campanhas de segurança do trabalho</li>
         </ul>
       </div>
 
       <div class="info-group">
         <div class="info-badge pts10">10 pts</div>
         <ul>
-          <li>Abertura de ROS ou DC (formulário de desvios)</li>
-          <li>Inspeções realizadas</li>
-          <li>Sugestões de melhorias</li>
-          <li>Reportes de 5S</li>
+          <li data-i18n="how_10pts_1">Abertura de ROS ou DC (formulário de desvios)</li>
+          <li data-i18n="how_10pts_2">Inspeções realizadas</li>
+          <li data-i18n="how_10pts_3">Sugestões de melhorias</li>
+          <li data-i18n="how_10pts_4">Reportes de 5S</li>
         </ul>
       </div>
 
       <div class="info-group">
         <div class="info-badge pts30">30 pts</div>
         <ul>
-          <li>Realização de terapia (Telavita ou particular), no mínimo 2x por mês</li>
-          <li>Boas práticas realizadas</li>
+          <li data-i18n="how_30pts_1">Realização de terapia (Telavita ou particular), no mínimo 2x por mês</li>
+          <li data-i18n="how_30pts_2">Boas práticas realizadas</li>
         </ul>
       </div>
 
       <div class="info-note" style="border-top:none; padding-top:0;">
-        <b style="color:var(--ink); display:block; margin-bottom:8px;">Faixas de reconhecimento</b>
+        <b style="color:var(--ink); display:block; margin-bottom:8px;" data-i18n="how_tiers_title">Faixas de reconhecimento</b>
         <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
-          <span class="tier-badge tier-1">Iniciante</span>
-          <span class="tier-badge tier-2">Atuante</span>
-          <span class="tier-badge tier-3">Referência</span>
-          <span class="tier-badge tier-4">Campeão</span>
+          <span class="tier-badge tier-1" data-i18n="tier_iniciante">Iniciante</span>
+          <span class="tier-badge tier-2" data-i18n="tier_atuante">Atuante</span>
+          <span class="tier-badge tier-3" data-i18n="tier_referencia">Referência</span>
+          <span class="tier-badge tier-4" data-i18n="tier_campeao">Campeão</span>
         </div>
-        À medida que os pontos sobem, cada colaborador avança de faixa — de Iniciante (0+) até Campeão (300+ pontos).
+        <span data-i18n="how_tiers_note">À medida que os pontos sobem, cada colaborador avança de faixa — de Iniciante (0+) até Campeão (300+ pontos).</span>
       </div>
 
-      <div class="info-note">O placar mostra apenas o total de pontos de cada colaborador — o critério que originou os pontos não é exibido publicamente.</div>
+      <div class="info-note" data-i18n="how_footer_note">O placar mostra apenas o total de pontos de cada colaborador — o critério que originou os pontos não é exibido publicamente.</div>
 
       <div class="modal-actions">
-        <button class="btn-close" id="infoCloseBtn">Fechar</button>
+        <button class="btn-close" id="infoCloseBtn" data-i18n="modal_close">Fechar</button>
       </div>
     </div>
   </div>
 
   <div id="board"></div>
 
+  <div id="printReportArea" class="print-only"></div>
+
   <footer>
     <div class="footer-top">
       <div class="status-line">
         <span class="live-dot" id="liveDot"></span>
         <span class="live-label" id="liveLabel">AO VIVO</span>
-        <span id="updatedAt">Carregando dados...</span>
+        <span id="updatedAt" data-i18n="loading_data">Carregando dados...</span>
       </div>
-      <div class="gear" id="gearBtn" title="Painel do administrador">⚙</div>
+      <div class="gear" id="gearBtn" data-i18n-title="admin_panel_gear_title" title="Painel do administrador">⚙</div>
     </div>
     <div class="footer-credit">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1022,6 +1055,25 @@ const I18N = {
     evo_caption:'Cada ponto é uma atualização salva no painel de pontos — o eixo vertical é o total de pontos da unidade naquele momento.',
     board_empty:'Nenhuma pontuação lançada ainda.<br>Clique na engrenagem para começar a publicar o placar.',
     ph_collab_name:'Nome do colaborador', ph_points:'Pontos', remove_row_title:'Remover',
+    my_performance_btn:'Meu desempenho', how_it_works_btn:'Como funciona',
+    perf_title:'Meu desempenho', perf_sub:'Selecione seu nome pra ver sua posição e o quanto falta pra subir no ranking.',
+    perf_select_default:'Selecione seu nome...', perf_position_in:(u)=>`Posição na ${u}`,
+    perf_total_points:'Total de pontos', perf_leader:(u)=>`🏆 Você está em 1º lugar na ${u}! Continue assim.`,
+    perf_hint:(diff,plural,name,pts)=>`Faltam <b>${diff} ${plural?'pontos':'ponto'}</b> pra ultrapassar <b>${name}</b> (${pts} pts), que está na frente de você.`,
+    how_title:'Como funciona a pontuação', how_sub:'Cada ação de segurança soma pontos pro seu total. Confira o valor de cada critério:',
+    how_5pts_1:'Realização de exames periódicos da empresa no prazo',
+    how_5pts_2:'Participação em palestras, eventos e campanhas de segurança do trabalho',
+    how_10pts_1:'Abertura de ROS ou DC (formulário de desvios)', how_10pts_2:'Inspeções realizadas',
+    how_10pts_3:'Sugestões de melhorias', how_10pts_4:'Reportes de 5S',
+    how_30pts_1:'Realização de terapia (Telavita ou particular), no mínimo 2x por mês', how_30pts_2:'Boas práticas realizadas',
+    how_tiers_title:'Faixas de reconhecimento',
+    how_tiers_note:'À medida que os pontos sobem, cada colaborador avança de faixa — de Iniciante (0+) até Campeão (300+ pontos).',
+    how_footer_note:'O placar mostra apenas o total de pontos de cada colaborador — o critério que originou os pontos não é exibido publicamente.',
+    admin_panel_gear_title:'Painel do administrador', loading_data:'Carregando dados...',
+    no_points_yet:'Nenhuma pontuação lançada ainda', updated_on:(d,h)=>`Atualizado em ${d} às ${h}`,
+    locale_code:'pt-BR',
+    print_report:'Imprimir relatório', print_title:'Relatório da Campanha "Nosso Time Bate um Bolão"',
+    print_generated_on:(d)=>`Gerado em ${d}`, print_col_position:'Posição', print_col_name:'Nome', print_col_points:'Pontos', print_col_tier:'Faixa',
   },
   en: {
     board_title:'Our Team Scores Big', board_subtitle:'WORKPLACE SAFETY CAMPAIGN',
@@ -1063,6 +1115,25 @@ const I18N = {
     evo_caption:'Each point is an update saved in the points panel — the vertical axis is the unit\'s total points at that moment.',
     board_empty:'No points entered yet.<br>Click the gear icon to start publishing the board.',
     ph_collab_name:'Employee name', ph_points:'Points', remove_row_title:'Remove',
+    my_performance_btn:'My performance', how_it_works_btn:'How it works',
+    perf_title:'My performance', perf_sub:'Select your name to see your position and how much you need to climb the ranking.',
+    perf_select_default:'Select your name...', perf_position_in:(u)=>`Position in ${u}`,
+    perf_total_points:'Total points', perf_leader:(u)=>`🏆 You're in 1st place in ${u}! Keep it up.`,
+    perf_hint:(diff,plural,name,pts)=>`You need <b>${diff} more point${plural?'s':''}</b> to pass <b>${name}</b> (${pts} pts), who is ahead of you.`,
+    how_title:'How the scoring works', how_sub:'Every safety action adds points to your total. Check the value of each criterion:',
+    how_5pts_1:'Completing company periodic exams on time',
+    how_5pts_2:'Attending talks, events and workplace safety campaigns',
+    how_10pts_1:'Opening a report or deviation form', how_10pts_2:'Inspections carried out',
+    how_10pts_3:'Improvement suggestions', how_10pts_4:'5S reports',
+    how_30pts_1:'Attending therapy (Telavita or private), at least 2x per month', how_30pts_2:'Good practices carried out',
+    how_tiers_title:'Recognition tiers',
+    how_tiers_note:'As points go up, each employee advances a tier — from Starter (0+) to Champion (300+ points).',
+    how_footer_note:'The board only shows each employee\'s total points — the criteria behind the points aren\'t shown publicly.',
+    admin_panel_gear_title:'Admin panel', loading_data:'Loading data...',
+    no_points_yet:'No points published yet', updated_on:(d,h)=>`Updated on ${d} at ${h}`,
+    locale_code:'en-US',
+    print_report:'Print report', print_title:'"Our Team Scores Big" Campaign Report',
+    print_generated_on:(d)=>`Generated on ${d}`, print_col_position:'Position', print_col_name:'Name', print_col_points:'Points', print_col_tier:'Tier',
   },
   de: {
     board_title:'Unser Team punktet groß', board_subtitle:'KAMPAGNE FÜR ARBEITSSICHERHEIT',
@@ -1104,6 +1175,25 @@ const I18N = {
     evo_caption:'Jeder Punkt ist eine im Punkte-Panel gespeicherte Aktualisierung — die vertikale Achse zeigt die Gesamtpunktzahl der Einheit zu diesem Zeitpunkt.',
     board_empty:'Noch keine Punkte erfasst.<br>Klicken Sie auf das Zahnrad-Symbol, um mit der Veröffentlichung des Boards zu beginnen.',
     ph_collab_name:'Name des Mitarbeiters', ph_points:'Punkte', remove_row_title:'Entfernen',
+    my_performance_btn:'Meine Leistung', how_it_works_btn:'So funktioniert es',
+    perf_title:'Meine Leistung', perf_sub:'Wählen Sie Ihren Namen, um Ihre Position zu sehen und wie viel bis zum Aufstieg fehlt.',
+    perf_select_default:'Namen auswählen...', perf_position_in:(u)=>`Position bei ${u}`,
+    perf_total_points:'Gesamtpunktzahl', perf_leader:(u)=>`🏆 Sie sind auf Platz 1 bei ${u}! Weiter so.`,
+    perf_hint:(diff,plural,name,pts)=>`Es fehlen noch <b>${diff} Punkt${plural?'e':''}</b>, um <b>${name}</b> (${pts} Pkt.) zu überholen, der/die vor Ihnen liegt.`,
+    how_title:'So funktioniert die Punktevergabe', how_sub:'Jede Sicherheitsaktion bringt Punkte für Ihre Gesamtzahl. Sehen Sie den Wert jedes Kriteriums:',
+    how_5pts_1:'Fristgerechte Teilnahme an betrieblichen Vorsorgeuntersuchungen',
+    how_5pts_2:'Teilnahme an Vorträgen, Veranstaltungen und Arbeitssicherheitskampagnen',
+    how_10pts_1:'Erstellung einer Melde- oder Abweichungsmeldung', how_10pts_2:'Durchgeführte Inspektionen',
+    how_10pts_3:'Verbesserungsvorschläge', how_10pts_4:'5S-Meldungen',
+    how_30pts_1:'Therapie (Telavita oder privat), mindestens 2x pro Monat', how_30pts_2:'Durchgeführte gute Praktiken',
+    how_tiers_title:'Anerkennungsstufen',
+    how_tiers_note:'Mit steigender Punktzahl steigt jeder Mitarbeiter eine Stufe auf — von Einsteiger (0+) bis Champion (300+ Punkte).',
+    how_footer_note:'Das Board zeigt nur die Gesamtpunktzahl jedes Mitarbeiters — das Kriterium hinter den Punkten wird nicht öffentlich angezeigt.',
+    admin_panel_gear_title:'Admin-Panel', loading_data:'Daten werden geladen...',
+    no_points_yet:'Noch keine Punkte veröffentlicht', updated_on:(d,h)=>`Aktualisiert am ${d} um ${h}`,
+    locale_code:'de-DE',
+    print_report:'Bericht drucken', print_title:'Bericht der Kampagne "Unser Team punktet groß"',
+    print_generated_on:(d)=>`Erstellt am ${d}`, print_col_position:'Position', print_col_name:'Name', print_col_points:'Punkte', print_col_tier:'Stufe',
   }
 };
 let currentLang = localStorage.getItem('campanhaLang') || 'pt';
@@ -1131,6 +1221,14 @@ function setLang(lang){
   const analisePanel = document.getElementById('adminPanelAnalise');
   if(analisePanel && analisePanel.style.display !== 'none' && typeof renderAnalise === 'function') renderAnalise();
   if(tipTimer && typeof showTip === 'function') showTip();
+  if(typeof tickClock === 'function') tickClock();
+  const perfOv = document.getElementById('perfOverlay');
+  if(perfOv && perfOv.classList.contains('show') && typeof populatePerfSelect === 'function'){
+    const prevVal = document.getElementById('perfSelect').value;
+    populatePerfSelect();
+    document.getElementById('perfSelect').value = prevVal;
+    if(prevVal){ const [u,n] = prevVal.split('::'); showMyPerformance(u,n); }
+  }
 }
 document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => setLang(btn.dataset.lang));
@@ -1144,6 +1242,8 @@ const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === 
 if(!ADMIN_MODE){
   const gearEl = document.getElementById('gearBtn');
   if(gearEl) gearEl.style.display = 'none';
+  const printEl = document.getElementById('printReportBtn');
+  if(printEl) printEl.style.display = 'none';
 }
 
 // Fonte dos dados: Google Apps Script publicado a partir da Planilha Google.
@@ -1430,9 +1530,10 @@ async function saveUnit(unit, rows){
 }
 
 function fmtWhen(iso){
-  if(!iso) return 'Nenhuma pontuação lançada ainda';
+  if(!iso) return t('no_points_yet');
   const d = new Date(iso);
-  return 'Atualizado em ' + d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const locale = t('locale_code');
+  return tf('updated_on', d.toLocaleDateString(locale), d.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'}));
 }
 
 function digitTiles(value, big){
@@ -1874,15 +1975,47 @@ infoOverlay.addEventListener('click', (e)=>{
   if(e.target === infoOverlay) infoOverlay.classList.remove('show');
 });
 
+/* ---------------- Relatório de impressão ---------------- */
+function buildPrintReport(){
+  const area = document.getElementById('printReportArea');
+  const hoje = new Date().toLocaleDateString(t('locale_code'), { day:'2-digit', month:'2-digit', year:'numeric' });
+
+  const unitTable = (unit) => {
+    const rows = [...data[unit]].sort((a,b)=>b.points-a.points);
+    if(rows.length === 0) return '';
+    const trs = rows.map((p,i) => {
+      const tier = TIERS.find(tr => (p.points||0) >= tr.min);
+      return `<tr><td>${i+1}º</td><td>${escapeHtml(p.name)}</td><td>${p.points}</td><td><span class="print-tier">${t(tier.key)}</span></td></tr>`;
+    }).join('');
+    return `
+      <div class="print-unit-title">${t(unit === 'filial' ? 'tab_filial' : 'tab_matriz')}</div>
+      <table class="print-table">
+        <thead><tr><th>${t('print_col_position')}</th><th>${t('print_col_name')}</th><th>${t('print_col_points')}</th><th>${t('print_col_tier')}</th></tr></thead>
+        <tbody>${trs}</tbody>
+      </table>`;
+  };
+
+  area.innerHTML = `
+    <div class="print-title">${t('print_title')}</div>
+    <div class="print-meta">${tf('print_generated_on', hoje)}</div>
+    ${unitTable('filial')}
+    ${unitTable('matriz')}
+  `;
+}
+document.getElementById('printReportBtn').addEventListener('click', () => {
+  buildPrintReport();
+  setTimeout(() => window.print(), 80);
+});
+
 /* ---------------- Meu desempenho ---------------- */
 const perfOverlay = document.getElementById('perfOverlay');
 const perfSelect = document.getElementById('perfSelect');
 const perfResult = document.getElementById('perfResult');
 
 function populatePerfSelect(){
-  const options = ['<option value="">Selecione seu nome...</option>'];
+  const options = [`<option value="" data-i18n="perf_select_default">${t('perf_select_default')}</option>`];
   UNITS.forEach(unit=>{
-    const label = unit === 'filial' ? 'Filial' : 'Matriz';
+    const label = unit === 'filial' ? t('tab_filial') : t('tab_matriz');
     const names = [...data[unit]].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
     if(names.length === 0) return;
     options.push(`<optgroup label="${label}">`);
@@ -1902,16 +2035,16 @@ function showMyPerformance(unit, name){
   const person = sorted[idx];
   const pos = idx + 1;
   const total = sorted.length;
-  const unitLabel = unit === 'filial' ? 'Filial' : 'Matriz';
-  const tier = TIERS.find(t => person.points >= t.min);
+  const unitLabel = unit === 'filial' ? t('tab_filial') : t('tab_matriz');
+  const tier = TIERS.find(tr => person.points >= tr.min);
 
   let hintHtml = '';
   if(idx === 0){
-    hintHtml = `<div class="perf-leader">🏆 Você está em 1º lugar na ${unitLabel}! Continue assim.</div>`;
+    hintHtml = `<div class="perf-leader">${tf('perf_leader', unitLabel)}</div>`;
   } else {
     const ahead = sorted[idx-1];
     const diff = ahead.points - person.points;
-    hintHtml = `<div class="perf-hint">Faltam <b>${diff} ${diff===1?'ponto':'pontos'}</b> pra ultrapassar <b>${escapeHtml(ahead.name)}</b> (${ahead.points} pts), que está na frente de você.</div>`;
+    hintHtml = `<div class="perf-hint">${tf('perf_hint', diff, diff !== 1, escapeHtml(ahead.name), ahead.points)}</div>`;
   }
 
   const key = `${unit}::${normalizeText(person.name)}`;
@@ -1919,13 +2052,13 @@ function showMyPerformance(unit, name){
 
   perfResult.innerHTML = `
     <div class="perf-card">
-      <div class="perf-name">${escapeHtml(person.name)} <span class="tier-badge ${tier.cls}">${tier.name}</span></div>
+      <div class="perf-name">${escapeHtml(person.name)} <span class="tier-badge ${tier.cls}">${t(tier.key)}</span></div>
       <div class="perf-row">
-        <span class="perf-label">Posição na ${unitLabel}</span>
+        <span class="perf-label">${tf('perf_position_in', unitLabel)}</span>
         <span class="perf-value">${pos}º de ${total} ${change}</span>
       </div>
       <div class="perf-row">
-        <span class="perf-label">Total de pontos</span>
+        <span class="perf-label">${t('perf_total_points')}</span>
         <span class="perf-value">${person.points} pts</span>
       </div>
       ${hintHtml}
@@ -1953,8 +2086,9 @@ perfSelect.addEventListener('change', ()=>{
 
 function tickClock(){
   const now = new Date();
-  document.getElementById('clockTime').textContent = now.toLocaleTimeString('pt-BR');
-  document.getElementById('clockDate').textContent = now.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long'});
+  const locale = t('locale_code');
+  document.getElementById('clockTime').textContent = now.toLocaleTimeString(locale);
+  document.getElementById('clockDate').textContent = now.toLocaleDateString(locale, {weekday:'long', day:'2-digit', month:'long'});
 }
 setInterval(tickClock, 1000);
 tickClock();
@@ -2348,11 +2482,14 @@ function showDiasSemAcidentesBanner(){
 
 async function init(){
   // tempo mínimo de exibição da tela de abertura, pra marca aparecer mesmo
-  // quando os dados carregam muito rápido — mas nunca trava além de 4s,
-  // mesmo se a planilha demorar ou falhar em responder
+  // quando os dados carregam muito rápido — mas nunca trava além de 7s, mesmo se
+  // a planilha demorar ou falhar em responder (o Google Apps Script às vezes "esfria"
+  // depois de um tempo sem uso, e a primeira consulta pode demorar alguns segundos
+  // a mais só nessa hora — 7s dá folga suficiente pra isso sem travar pra sempre
+  // se o backend realmente estiver fora do ar)
   const minDelay = new Promise(resolve => setTimeout(resolve, 1300));
   const dataAndDelay = Promise.all([fetchAllData(), minDelay]);
-  const safetyTimeout = new Promise(resolve => setTimeout(resolve, 4000));
+  const safetyTimeout = new Promise(resolve => setTimeout(resolve, 7000));
   await Promise.race([dataAndDelay, safetyTimeout]);
 
   // primeira execução (planilha ainda vazia): publica o roteiro oficial de
@@ -2369,7 +2506,7 @@ async function init(){
   // crescer suavemente, a contagem terminar de animar, e ainda ficar visível
   // um tempinho antes da splash começar a sumir
   if(mostrandoContador && !reduceMotion()){
-    await new Promise(resolve => setTimeout(resolve, 4100));
+    await new Promise(resolve => setTimeout(resolve, 3400));
   }
   hideSplash();
   startTips();
