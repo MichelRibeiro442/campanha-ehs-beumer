@@ -555,6 +555,17 @@
     box-shadow:var(--shadow-2);
   }
   .modal h2{font-family:'Oswald',sans-serif; margin:0 0 4px; font-size:20px;}
+  .modal-title-row{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:4px;}
+  .modal-title-row h2{margin:0;}
+  .analise-link-btn{
+    display:inline-flex; align-items:center; gap:6px; flex:none;
+    padding:8px 14px; border-radius:999px; margin-top:2px;
+    background:rgba(0,159,227,0.12); border:1px solid rgba(0,159,227,0.4);
+    color:var(--blue-light); font-family:'Oswald',sans-serif; font-size:12px; font-weight:600;
+    letter-spacing:0.2px; text-decoration:none; white-space:nowrap;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .analise-link-btn:hover{background:rgba(0,159,227,0.22); transform:translateY(-1px);}
   .modal .sub{color:var(--muted); font-size:13px; margin-bottom:18px;}
   .admin-welcome-modal{text-align:center; max-width:440px;}
   .admin-welcome-icon{font-size:38px; margin-bottom:10px;}
@@ -1072,10 +1083,14 @@
 
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h2 data-i18n="admin_panel_title">Painel do administrador</h2>
-    <div class="admin-tabs">
-      <button class="admin-tab active" id="adminTabPontos" data-i18n="admin_tab_pontos">Pontos</button>
-      <button class="admin-tab" id="adminTabAnalise" data-i18n="admin_tab_analise">Análise</button>
+    <div class="modal-title-row">
+      <h2 data-i18n="admin_panel_title">Painel do administrador</h2>
+      <a class="analise-link-btn" href="./analise.html?admin=1" target="_blank" rel="noopener noreferrer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path>
+        </svg>
+        <span data-i18n="view_full_analysis">Ver análise completa</span>
+      </a>
     </div>
 
     <div id="adminPanelPontos">
@@ -1113,13 +1128,6 @@
       <div class="save-note" id="saveNote"></div>
     </div>
 
-    <div id="adminPanelAnalise" style="display:none;">
-      <div class="sub" data-i18n="analise_geral_sub">Visão geral da campanha, calculada a partir dos dados carregados agora. Some sozinha conforme você atualiza os pontos e os ROS.</div>
-      <div id="analiseContent"></div>
-      <div class="modal-actions">
-        <button class="btn-close" id="closeBtnAnalise" style="flex:1;" data-i18n="modal_close">Fechar</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -1145,7 +1153,7 @@ const I18N = {
     days_since_prefix:'Estamos há', days_since_suffix:'dias sem acidentes de trabalho',
     tier_iniciante:'Iniciante', tier_atuante:'Atuante', tier_referencia:'Referência', tier_campeao:'Campeão',
     footer_credit_label:'Segurança do Trabalho:', live_indicator:'AO VIVO', reconnecting:'RECONECTANDO',
-    admin_tab_pontos:'Pontos', admin_tab_analise:'Análise', admin_panel_title:'Painel do administrador',
+    admin_panel_title:'Painel do administrador', view_full_analysis:'Ver análise completa',
     modal_save:'Salvar e publicar', modal_close:'Fechar',
     points_admin_sub:'Lance aqui somente o total de pontos de cada colaborador. O critério que originou os pontos não é exibido no placar público.',
     add_collaborator:'+ adicionar colaborador', bulk_toggle:'📋 colar em lote (nome + pontos)',
@@ -1205,7 +1213,7 @@ const I18N = {
     days_since_prefix:'We are at', days_since_suffix:'days without workplace accidents',
     tier_iniciante:'Starter', tier_atuante:'Active', tier_referencia:'Reference', tier_campeao:'Champion',
     footer_credit_label:'Occupational Safety:', live_indicator:'LIVE', reconnecting:'RECONNECTING',
-    admin_tab_pontos:'Points', admin_tab_analise:'Analytics', admin_panel_title:'Admin panel',
+    admin_panel_title:'Admin panel', view_full_analysis:'View full analytics',
     modal_save:'Save and publish', modal_close:'Close',
     points_admin_sub:'Enter only the total points for each employee here. The criteria behind the points is not shown on the public board.',
     add_collaborator:'+ add employee', bulk_toggle:'📋 paste in bulk (name + points)',
@@ -1265,7 +1273,7 @@ const I18N = {
     days_since_prefix:'Wir sind bei', days_since_suffix:'Tagen ohne Arbeitsunfälle',
     tier_iniciante:'Einsteiger', tier_atuante:'Aktiv', tier_referencia:'Referenz', tier_campeao:'Champion',
     footer_credit_label:'Arbeitssicherheit:', live_indicator:'LIVE', reconnecting:'VERBINDE NEU',
-    admin_tab_pontos:'Punkte', admin_tab_analise:'Analyse', admin_panel_title:'Admin-Panel',
+    admin_panel_title:'Admin-Panel', view_full_analysis:'Vollständige Analyse ansehen',
     modal_save:'Speichern und veröffentlichen', modal_close:'Schließen',
     points_admin_sub:'Geben Sie hier nur die Gesamtpunktzahl jedes Mitarbeiters ein. Das Kriterium hinter den Punkten wird im öffentlichen Board nicht angezeigt.',
     add_collaborator:'+ Mitarbeiter hinzufügen', bulk_toggle:'📋 Massenimport (Name + Punkte)',
@@ -1339,8 +1347,6 @@ function setLang(lang){
   applyI18n();
   if(typeof renderBoard === 'function') renderBoard();
   if(typeof setLiveState === 'function' && typeof isOnline !== 'undefined') setLiveState(isOnline);
-  const analisePanel = document.getElementById('adminPanelAnalise');
-  if(analisePanel && analisePanel.style.display !== 'none' && typeof renderAnalise === 'function') renderAnalise();
   if(tipTimer && typeof showTip === 'function') showTip();
   if(typeof tickClock === 'function') tickClock();
   const perfOv = document.getElementById('perfOverlay');
@@ -1753,196 +1759,6 @@ function tierBadgeHtml(points, forPodium){
   const tier = TIERS.find(x => points >= x.min);
   const wrap = forPodium ? 'div' : 'span';
   return `<${wrap} class="tier-badge ${tier.cls}">${t(tier.key)}</${wrap}>`;
-}
-
-/* ---------------- Aba Análise (dentro do painel admin) ---------------- */
-const TIER_BAR_COLORS = { 'tier-1':'#6BD0F7', 'tier-2':'#009FE3', 'tier-3':'#4C8CA3', 'tier-4':'#F4BE2C' };
-
-// aceita dd/mm/aaaa (como o Excel costuma exportar) ou qualquer formato que o Date entenda
-function parsePrazoAdmin(prazo){
-  if(!prazo) return null;
-  const br = String(prazo).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if(br){
-    const [, d, m, y] = br;
-    const year = y.length === 2 ? '20' + y : y;
-    const dt = new Date(Number(year), Number(m) - 1, Number(d));
-    return isNaN(dt.getTime()) ? null : dt;
-  }
-  const generic = new Date(prazo);
-  return isNaN(generic.getTime()) ? null : generic;
-}
-
-function statusNorm(status){
-  return String(status || '').trim().toLowerCase();
-}
-function isConcluidoAdmin(status){
-  const s = statusNorm(status);
-  return s === 'concluído' || s === 'concluido' || s === 'fechado';
-}
-
-function renderEvolutionChart(historico){
-  const toPoint = h => ({ t: new Date(h.timestamp).getTime(), v: Number(h.totalPontos) || 0 });
-  const filialSeries = (historico || []).filter(h => String(h.unit).toLowerCase() === 'filial')
-    .map(toPoint).filter(p => !isNaN(p.t)).sort((a,b) => a.t - b.t);
-  const matrizSeries = (historico || []).filter(h => String(h.unit).toLowerCase() === 'matriz')
-    .map(toPoint).filter(p => !isNaN(p.t)).sort((a,b) => a.t - b.t);
-
-  const allPoints = [...filialSeries, ...matrizSeries];
-  if(allPoints.length < 2){
-    return `<div class="evo-empty">${t('evo_empty')}</div>`;
-  }
-
-  const minT = Math.min(...allPoints.map(p => p.t));
-  const maxT = Math.max(...allPoints.map(p => p.t));
-  const maxV = Math.max(1, ...allPoints.map(p => p.v));
-
-  const W = 520, H = 190, padL = 32, padR = 10, padT = 14, padB = 24;
-  const plotW = W - padL - padR, plotH = H - padT - padB;
-  const xOf = t => (maxT === minT ? padL + plotW/2 : padL + ((t - minT)/(maxT - minT)) * plotW);
-  const yOf = v => padT + plotH - (v / maxV) * plotH;
-
-  const pathOf = series => series.length === 0 ? '' :
-    series.map((p,i) => (i===0?'M':'L') + xOf(p.t).toFixed(1) + ' ' + yOf(p.v).toFixed(1)).join(' ');
-  const dotsOf = (series, color) => series.map(p =>
-    `<circle cx="${xOf(p.t).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3.3" fill="${color}"></circle>`).join('');
-
-  const dateFmt = t => new Date(t).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
-
-  return `
-    <div style="display:flex; gap:16px; font-size:11.5px; color:var(--muted); margin-bottom:6px;">
-      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#009FE3;margin-right:5px;"></span>${t('tab_filial')}</span>
-      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F4BE2C;margin-right:5px;"></span>${t('tab_matriz')}</span>
-    </div>
-    <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
-      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
-      <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
-      <text x="${padL-6}" y="${padT+4}" text-anchor="end" font-size="9" fill="#7FAFC2">${maxV}</text>
-      <text x="${padL-6}" y="${padT+plotH+3}" text-anchor="end" font-size="9" fill="#7FAFC2">0</text>
-      ${pathOf(filialSeries) ? `<path d="${pathOf(filialSeries)}" fill="none" stroke="#009FE3" stroke-width="2"></path>` : ''}
-      ${pathOf(matrizSeries) ? `<path d="${pathOf(matrizSeries)}" fill="none" stroke="#F4BE2C" stroke-width="2"></path>` : ''}
-      ${dotsOf(filialSeries, '#009FE3')}
-      ${dotsOf(matrizSeries, '#F4BE2C')}
-      <text x="${padL}" y="${H-6}" font-size="9.5" fill="#7FAFC2">${dateFmt(minT)}</text>
-      <text x="${padL+plotW}" y="${H-6}" text-anchor="end" font-size="9.5" fill="#7FAFC2">${dateFmt(maxT)}</text>
-    </svg>
-    <div class="evo-caption">${t('evo_caption')}</div>
-  `;
-}
-
-function unitStatsAdmin(list){
-  const total = list.length;
-  const part = list.filter(p => (p.points||0) > 0).length;
-  const soma = list.reduce((s,p) => s + (p.points||0), 0);
-  return { total, part, soma, pct: total ? Math.round((part/total)*100) : 0, media: total ? Math.round(soma/total) : 0 };
-}
-
-function renderAnalise(){
-  const container = document.getElementById('analiseContent');
-  const filial = data.filial || [];
-  const matriz = data.matriz || [];
-  const allPeople = [...filial, ...matriz];
-
-  const totalPeople = allPeople.length;
-  const participating = allPeople.filter(p => (p.points||0) > 0).length;
-  const totalPoints = allPeople.reduce((s,p) => s + (p.points||0), 0);
-
-  const rosList = Array.isArray(data.ros) ? data.ros : [];
-  const rosAbertos = rosList.filter(r => { const s = statusNorm(r.status); return s === 'aberto' || s === ''; }).length;
-  const rosAndamento = rosList.filter(r => statusNorm(r.status).includes('andamento')).length;
-  const rosConcluidos = rosList.filter(r => isConcluidoAdmin(r.status)).length;
-  const rosAtrasados = rosList.filter(r => {
-    if(isConcluidoAdmin(r.status)) return false;
-    const d = parsePrazoAdmin(r.prazo);
-    if(!d) return false;
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    return d.getTime() < hoje.getTime();
-  }).length;
-
-  const semPontosFilial = filial.filter(p => !(p.points > 0)).map(p => p.name);
-  const semPontosMatriz = matriz.filter(p => !(p.points > 0)).map(p => p.name);
-
-  const filialStats = unitStatsAdmin(filial);
-  const matrizStats = unitStatsAdmin(matriz);
-  const vencedora = filialStats.pct === matrizStats.pct ? null : (filialStats.pct > matrizStats.pct ? 'Filial' : 'Matriz');
-
-  const tierCounts = TIERS.map(t => ({ ...t, count: 0 }));
-  allPeople.forEach(p => {
-    const tier = TIERS.find(t => (p.points||0) >= t.min);
-    const found = tierCounts.find(t => t.name === tier.name);
-    if(found) found.count++;
-  });
-  const maxTierCount = Math.max(1, ...tierCounts.map(t => t.count));
-
-  const listHtml = names => names.length
-    ? `<ul>${names.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
-    : `<div class="noscore-empty">${t('analise_everyone_scored')}</div>`;
-
-  container.innerHTML = `
-    <div class="analysis-section">
-      <h3>${t('analise_resumo_geral')}</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="stat-value">${participating}/${totalPeople}</div><div class="stat-label">${t('analise_collab_participating')}</div></div>
-        <div class="stat-card"><div class="stat-value">${totalPoints.toLocaleString('pt-BR')}</div><div class="stat-label">${t('analise_points_summed')}</div></div>
-      </div>
-      <div class="ros-mini-grid">
-        <div class="ros-mini-card"><div class="val" style="color:#FCA5A5;">${rosAbertos}</div><div class="lbl">${t('ros_open_label')}</div></div>
-        <div class="ros-mini-card"><div class="val" style="color:var(--gold);">${rosAndamento}</div><div class="lbl">${t('ros_progress_label')}</div></div>
-        <div class="ros-mini-card"><div class="val" style="color:#86EFAC;">${rosConcluidos}</div><div class="lbl">${t('ros_completed_label')}</div></div>
-        <div class="ros-mini-card"><div class="val" style="color:#EF4444;">${rosAtrasados}</div><div class="lbl">${t('ros_overdue_label')}</div></div>
-      </div>
-    </div>
-
-    <div class="analysis-section">
-      <h3>${t('analise_who_not_scored')}</h3>
-      <div class="noscore-cols">
-        <div class="noscore-col">
-          <div class="col-title">${t('tab_filial')} (${semPontosFilial.length})</div>
-          ${listHtml(semPontosFilial)}
-        </div>
-        <div class="noscore-col">
-          <div class="col-title">${t('tab_matriz')} (${semPontosMatriz.length})</div>
-          ${listHtml(semPontosMatriz)}
-        </div>
-      </div>
-    </div>
-
-    <div class="analysis-section">
-      <h3>${t('analise_most_engaged')}</h3>
-      <div class="engage-compare">
-        <div class="engage-card ${vencedora==='Filial' ? 'winner' : ''}">
-          ${vencedora==='Filial' ? '<div class="engage-crown">🏆</div>' : ''}
-          <div class="engage-unit">${t('tab_filial')}</div>
-          <div class="engage-metric"><span>${t('analise_participation_label')}</span><b>${filialStats.pct}% (${filialStats.part}/${filialStats.total})</b></div>
-          <div class="engage-metric"><span>${t('analise_avg_per_person')}</span><b>${filialStats.media} pts</b></div>
-          <div class="engage-metric"><span>${t('analise_unit_total')}</span><b>${filialStats.soma.toLocaleString('pt-BR')} pts</b></div>
-        </div>
-        <div class="engage-card ${vencedora==='Matriz' ? 'winner' : ''}">
-          ${vencedora==='Matriz' ? '<div class="engage-crown">🏆</div>' : ''}
-          <div class="engage-unit">${t('tab_matriz')}</div>
-          <div class="engage-metric"><span>${t('analise_participation_label')}</span><b>${matrizStats.pct}% (${matrizStats.part}/${matrizStats.total})</b></div>
-          <div class="engage-metric"><span>${t('analise_avg_per_person')}</span><b>${matrizStats.media} pts</b></div>
-          <div class="engage-metric"><span>${t('analise_unit_total')}</span><b>${matrizStats.soma.toLocaleString('pt-BR')} pts</b></div>
-        </div>
-      </div>
-      ${vencedora ? '' : `<div class="noscore-empty" style="margin-top:8px;">${t('analise_tie')}</div>`}
-    </div>
-
-    <div class="analysis-section">
-      <h3>${t('analise_tier_distribution')}</h3>
-      ${tierCounts.map(tc => `
-        <div class="tier-dist-row">
-          <span class="tier-dist-label">${t(tc.key)}</span>
-          <div class="tier-dist-bar-bg"><div class="tier-dist-bar-fill" style="width:${(tc.count/maxTierCount*100)}%; background:${TIER_BAR_COLORS[tc.cls]};"></div></div>
-          <span class="tier-dist-count">${tc.count}</span>
-        </div>
-      `).join('')}
-    </div>
-
-    <div class="analysis-section">
-      <h3>${t('analise_weekly_evolution')}</h3>
-      ${renderEvolutionChart(data.historico)}
-    </div>
-  `;
 }
 
 
@@ -2383,47 +2199,11 @@ startPolling();
 
 /* ---------------- Admin ---------------- */
 const overlay = document.getElementById('overlay');
-const adminTabPontos = document.getElementById('adminTabPontos');
-const adminTabAnalise = document.getElementById('adminTabAnalise');
-const adminPanelPontos = document.getElementById('adminPanelPontos');
-const adminPanelAnalise = document.getElementById('adminPanelAnalise');
-
-// Busca ROS + Histórico + Dados/Meta de uma vez, só quando a aba Análise é aberta
-// (não faz parte do polling normal do placar, pra não pesar as consultas frequentes).
-async function fetchAnaliseData(){
-  const res = await fetch(API_URL + '?tipo=full', { method:'GET' });
-  if(!res.ok) throw new Error('HTTP ' + res.status);
-  const json = await res.json();
-  data.filial = Array.isArray(json.filial) ? json.filial : data.filial;
-  data.matriz = Array.isArray(json.matriz) ? json.matriz : data.matriz;
-  data.ros = Array.isArray(json.ros) ? json.ros : [];
-  data.historico = Array.isArray(json.historico) ? json.historico : [];
-}
-
-function showAdminTab(tab){
-  const isPontos = tab === 'pontos';
-  adminTabPontos.classList.toggle('active', isPontos);
-  adminTabAnalise.classList.toggle('active', !isPontos);
-  adminPanelPontos.style.display = isPontos ? '' : 'none';
-  adminPanelAnalise.style.display = isPontos ? 'none' : '';
-  if(!isPontos){
-    document.getElementById('analiseContent').innerHTML = '<div class="evo-empty">Carregando análise...</div>';
-    fetchAnaliseData()
-      .then(renderAnalise)
-      .catch(()=>{
-        document.getElementById('analiseContent').innerHTML = '<div class="evo-empty">Não foi possível carregar a análise agora. Tente fechar e abrir de novo.</div>';
-      });
-  }
-}
-adminTabPontos.addEventListener('click', ()=>showAdminTab('pontos'));
-adminTabAnalise.addEventListener('click', ()=>showAdminTab('analise'));
-document.getElementById('closeBtnAnalise').addEventListener('click', ()=>overlay.classList.remove('show'));
 
 document.getElementById('gearBtn').addEventListener('click', ()=>{
   editUnit = currentUnit;
   syncUnitButtons();
   renderEditRows();
-  showAdminTab('pontos');
   const diasInput = document.getElementById('diasAcidentesInput');
   if(diasInput) diasInput.value = brToIsoNav(data.diasSemAcidentesDesde);
   const diasNote = document.getElementById('diasAcidentesNote');

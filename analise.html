@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Análise — Beumer Group</title>
+<link rel="icon" type="image/png" href="./assets/favicon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#001821;
+    --navy:#00303E;
+    --navy-light:#0A4356;
+    --blue:#009FE3;
+    --blue-light:#6BD0F7;
+    --gold:#F4BE2C;
+    --silver:#CBD9DF;
+    --bronze:#DE9A4E;
+    --ink:#EAF7FC;
+    --muted:#7FAFC2;
+    --line:rgba(255,255,255,0.09);
+    --radius-sm:8px;
+    --radius-md:10px;
+    --radius-lg:14px;
+    --shadow-1:0 4px 14px rgba(0,0,0,0.16);
+    --shadow-2:0 10px 26px rgba(0,0,0,0.26);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  html{scrollbar-width:thin; scrollbar-color:var(--blue) rgba(255,255,255,0.05);}
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:rgba(255,255,255,0.04);}
+  ::-webkit-scrollbar-thumb{background:var(--blue); border-radius:6px; border:2px solid transparent; background-clip:padding-box;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--blue-light); background-clip:padding-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:
+      radial-gradient(1200px 700px at 15% -10%, rgba(0,159,227,0.16), transparent 60%),
+      radial-gradient(900px 600px at 105% 10%, rgba(0,159,227,0.10), transparent 55%),
+      var(--navy-deep);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+  }
+  .aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+  .aurora span{position:absolute; border-radius:50%; filter:blur(100px); opacity:0.10; animation:auroraMove ease-in-out infinite;}
+  .aurora span:nth-child(1){width:620px; height:620px; top:-220px; left:-160px; background:radial-gradient(circle, var(--blue), transparent 70%); animation-duration:30s;}
+  .aurora span:nth-child(2){width:540px; height:540px; bottom:-220px; right:-160px; background:radial-gradient(circle, var(--gold), transparent 70%); animation-duration:34s; animation-delay:-9s;}
+  .aurora span:nth-child(3){width:440px; height:440px; top:38%; right:8%; background:radial-gradient(circle, var(--blue-light), transparent 70%); animation-duration:24s; animation-delay:-14s; opacity:0.07;}
+  @keyframes auroraMove{
+    0%,100%{transform:translate(0,0) scale(1);}
+    33%{transform:translate(40px,-32px) scale(1.05);}
+    66%{transform:translate(-32px,26px) scale(0.96);}
+  }
+  @media (prefers-reduced-motion:reduce){ .aurora span{animation:none;} }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 32px 80px; position:relative; z-index:1;}
+
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:24px; flex-wrap:wrap;
+    padding-bottom:24px; margin-bottom:32px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:16px;}
+  .brand-chip{display:flex; align-items:center; cursor:pointer; transition:opacity .2s ease, transform .2s ease;}
+  .brand-chip:hover{opacity:0.85; transform:translateY(-1px);}
+  .brand-chip img{display:block; height:44px; width:auto; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));}
+  .campaign h1{
+    font-family:'Oswald',sans-serif; font-weight:700; font-style:italic;
+    font-size:clamp(18px,2.6vw,26px); margin:0; color:#fff;
+  }
+  .campaign p{
+    margin:2px 0 0; font-size:11px; letter-spacing:2px; color:var(--muted); text-transform:uppercase;
+  }
+  .header-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .lang-switch{display:flex; align-items:center; gap:4px;}
+  .lang-btn{
+    width:28px; height:28px; border-radius:50%; border:1px solid var(--line);
+    background:rgba(255,255,255,0.03); cursor:pointer; padding:0;
+    font-size:14px; line-height:1; display:flex; align-items:center; justify-content:center;
+    opacity:0.55; filter:grayscale(40%); transition:opacity .2s ease, filter .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .lang-btn:hover{opacity:0.85; transform:translateY(-1px);}
+  .lang-btn.active{opacity:1; filter:none; border-color:var(--blue-light); box-shadow:0 0 0 1px rgba(107,208,247,0.3);}
+  .back-btn{
+    display:inline-flex; align-items:center; gap:7px; flex:none;
+    padding:9px 16px; border-radius:999px;
+    background:rgba(255,255,255,0.05); border:1px solid var(--line);
+    color:var(--ink); font-family:'Oswald',sans-serif; font-size:12.5px; font-weight:500;
+    letter-spacing:0.3px; text-decoration:none; white-space:nowrap; cursor:pointer;
+    transition:background .2s ease, transform .2s ease, border-color .2s ease;
+  }
+  .back-btn:hover{background:rgba(255,255,255,0.09); border-color:var(--blue-light); transform:translateY(-1px);}
+  .back-btn svg{flex:none;}
+
+  .locked{
+    text-align:center; padding:80px 20px; max-width:460px; margin:0 auto;
+  }
+  .locked svg{color:var(--muted); margin-bottom:16px;}
+  .locked h2{font-family:'Oswald',sans-serif; font-size:20px; margin:0 0 8px;}
+  .locked p{color:var(--muted); font-size:13.5px; line-height:1.6; margin:0 0 20px;}
+
+  .top-section-title{
+    display:flex; align-items:center; gap:10px; margin:0 0 18px;
+    font-family:'Oswald',sans-serif; font-size:18px; font-weight:700; color:#fff;
+  }
+  .top-section-title svg{flex:none; color:var(--blue-light);}
+  .analysis-block{
+    background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border:1px solid var(--line); border-radius:var(--radius-lg); padding:22px 24px;
+    margin-bottom:36px; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    box-shadow:var(--shadow-1);
+  }
+  .analysis-grid2{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  @media (max-width:820px){ .analysis-grid2{grid-template-columns:1fr;} }
+
+  .analysis-section{margin-bottom:26px;}
+  .analysis-section:last-child{margin-bottom:0;}
+  .analysis-section h3{font-family:'Oswald',sans-serif; font-size:14px; margin:0 0 10px; color:var(--blue-light); letter-spacing:0.3px;}
+  .analysis-note{font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4;}
+  .analysis-empty{font-size:12px; color:var(--muted); text-align:center; padding:18px; border:1px dashed var(--line); border-radius:10px;}
+
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+  .stat-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; box-shadow:var(--shadow-1);}
+  .stat-card .stat-value{font-family:'Oswald',sans-serif; font-size:21px; font-weight:700; color:#fff;}
+  .stat-card .stat-label{font-size:10.5px; color:var(--muted); letter-spacing:0.2px; margin-top:2px;}
+
+  .ros-mini-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .ros-mini-card{background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 4px; text-align:center; box-shadow:var(--shadow-1);}
+  .ros-mini-card .val{font-family:'Oswald',sans-serif; font-weight:700; font-size:17px;}
+  .ros-mini-card .lbl{font-size:8.8px; color:var(--muted); margin-top:2px; letter-spacing:0.2px;}
+
+  .noscore-cols{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .noscore-col{background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:var(--radius-md); padding:10px 12px; max-height:150px; overflow:auto;}
+  .noscore-col .col-title{font-size:12px; font-weight:700; color:var(--ink); margin-bottom:6px;}
+  .noscore-col ul{margin:0; padding-left:18px; font-size:12px; color:var(--muted); line-height:1.6;}
+  .noscore-empty{font-size:12px; color:var(--muted); font-style:italic;}
+
+  .engage-compare{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .engage-card{background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; position:relative; box-shadow:var(--shadow-1);}
+  .engage-card.winner{border-color:rgba(244,190,44,0.6); background:rgba(244,190,44,0.08);}
+  .engage-card .engage-unit{font-family:'Oswald',sans-serif; font-weight:700; font-size:14px; color:#fff;}
+  .engage-card .engage-crown{position:absolute; top:10px; right:12px; font-size:14px;}
+  .engage-metric{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px; gap:6px;}
+  .engage-metric b{color:var(--ink); text-align:right;}
+
+  .tier-dist-row{display:flex; align-items:center; gap:8px; margin-bottom:7px; font-size:12px;}
+  .tier-dist-label{width:80px; flex:none; color:var(--muted);}
+  .tier-dist-bar-bg{flex:1; height:8px; border-radius:4px; background:rgba(255,255,255,0.06); overflow:hidden;}
+  .tier-dist-bar-fill{height:100%; border-radius:4px;}
+  .tier-dist-count{width:24px; flex:none; text-align:right; color:var(--ink); font-weight:600;}
+
+  .evo-empty{font-size:12px; color:var(--muted); text-align:center; padding:22px 12px; border:1px dashed var(--line); border-radius:10px; line-height:1.5;}
+  .evo-caption{font-size:10.5px; color:var(--muted); text-align:center; margin-top:6px; line-height:1.4;}
+
+  .footer-credit{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding-top:16px; margin-top:32px; border-top:1px solid var(--line);
+    font-size:10.5px; letter-spacing:0.4px; color:var(--muted); opacity:0.8;
+    text-align:center;
+  }
+  .footer-credit-top{display:flex; align-items:center; justify-content:center; gap:7px; flex-wrap:wrap;}
+  .footer-shield-icon{flex:none; opacity:0.75;}
+  .footer-credit b{color:var(--blue-light); font-weight:600;}
+  .footer-flags{display:flex; align-items:center; justify-content:center; gap:9px;}
+  .footer-flag{
+    display:block; width:27px; height:19px; border-radius:3px; overflow:hidden; flex:none;
+    box-shadow:0 2px 7px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2);
+    transition:transform .2s ease;
+  }
+  .footer-flag:hover{transform:translateY(-1px) scale(1.06);}
+  .footer-flag svg{width:100%; height:100%; display:block;}
+
+  #printReportArea{display:none;}
+  @media print{
+    body{background:#fff !important; color:#111 !important;}
+    .aurora, .header-actions, .footer-credit, #app{display:none !important;}
+    header{border-bottom:2px solid #ccc;}
+    .campaign h1, .campaign p{color:#111 !important;}
+    .brand-chip img{filter:none !important;}
+    #printReportArea{display:block !important; color:#111;}
+    .print-title{font-family:'Oswald',sans-serif; font-size:20px; font-weight:700; margin:18px 0 2px;}
+    .print-meta{font-size:11px; color:#555; margin-bottom:16px;}
+    @page{margin:16mm;}
+  }
+</style>
+</head>
+<body>
+<div class="aurora"><span></span><span></span><span></span></div>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <a class="brand-chip" href="https://www.beumergroup.com/pt-br/" target="_blank" rel="noopener noreferrer" title="Visitar site da Beumer Group">
+        <img src="./assets/logo-beumer.png" alt="Beumer Group">
+      </a>
+      <div class="campaign">
+        <h1 data-i18n="page_title">Painel de Análise</h1>
+        <p data-i18n="page_subtitle">PONTOS &amp; SEGURANÇA DO TRABALHO</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="lang-switch">
+        <button type="button" class="lang-btn active" data-lang="pt" title="Português">🇧🇷</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English">🇺🇸</button>
+        <button type="button" class="lang-btn" data-lang="de" title="Deutsch">🇩🇪</button>
+      </div>
+      <button type="button" class="back-btn" id="printBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9V2h12v7"></path>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        <span data-i18n="print_report">Imprimir relatório</span>
+      </button>
+      <a class="back-btn" href="./index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"></path>
+          <path d="M12 19l-7-7 7-7"></path>
+        </svg>
+        <span data-i18n="back_to_board">Voltar ao placar</span>
+      </a>
+      <a class="back-btn" href="./ros.html?admin=1">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"></path>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+        </svg>
+        <span data-i18n="back_to_ros">Voltar ao ROS</span>
+      </a>
+    </div>
+  </header>
+
+  <div id="locked" class="locked" style="display:none;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    </svg>
+    <h2 data-i18n="locked_title">Página restrita à gestão</h2>
+    <p data-i18n="locked_text">Esse painel reúne indicadores internos da campanha e só fica disponível para quem acessa com autorização de administrador.</p>
+    <a class="back-btn" href="./index.html" data-i18n="back_to_board">Voltar ao placar</a>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="analysis-block">
+      <div class="top-section-title">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path>
+        </svg>
+        <span data-i18n="section_points">Campanha de Pontos</span>
+      </div>
+      <div id="pointsAnalysisContent"></div>
+    </div>
+
+    <div class="analysis-block">
+      <div class="top-section-title">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
+          <path d="m9 12 2 2 4-4"></path>
+        </svg>
+        <span data-i18n="section_safety">Segurança do Trabalho (ROS)</span>
+      </div>
+      <div id="rosAnalysisContent"></div>
+    </div>
+  </div>
+
+  <div id="printReportArea"></div>
+
+  <div class="footer-credit">
+    <div class="footer-credit-top">
+      <svg class="footer-shield-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3z"></path>
+        <path d="m9 12 2 2 4-4"></path>
+      </svg>
+      <span><span data-i18n="footer_credit_label">Segurança do Trabalho:</span> <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
+    </div>
+    <div class="footer-flags">
+      <span class="footer-flag" title="Brasil">
+        <svg viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg">
+          <rect width="20" height="14" fill="#009639"/>
+          <polygon points="10,1.3 18.5,7 10,12.7 1.5,7" fill="#FEDF00"/>
+          <circle cx="10" cy="7" r="4.2" fill="#002776"/>
+          <path d="M 6.2 8.8 Q 10 6.6 14.2 5.3" stroke="#FFFFFF" stroke-width="1.1" fill="none"/>
+          <g fill="#FFFFFF">
+            <circle cx="8.1" cy="5.1" r="0.22"/><circle cx="9.3" cy="4.2" r="0.22"/>
+            <circle cx="11.2" cy="4.4" r="0.22"/><circle cx="12.6" cy="5.8" r="0.22"/>
+            <circle cx="12.3" cy="7.6" r="0.22"/><circle cx="11.3" cy="9.2" r="0.22"/>
+            <circle cx="9.2" cy="9.6" r="0.22"/><circle cx="7.7" cy="8.4" r="0.22"/>
+            <circle cx="7.4" cy="6.7" r="0.22"/><circle cx="10" cy="7" r="0.28"/>
+          </g>
+        </svg>
+      </span>
+      <span class="footer-flag" title="Deutschland">
+        <svg viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg">
+          <rect width="20" height="14" fill="#000000"/>
+          <rect y="4.667" width="20" height="4.667" fill="#DD0000"/>
+          <rect y="9.333" width="20" height="4.667" fill="#FFCE00"/>
+        </svg>
+      </span>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
+const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVBRhwsZzbsaaMZ-orXeCgE0r5hAaEB2fsvB0sOn10BVgsveA/exec';
+
+/* ---------------- Idioma (PT / EN / DE) ---------------- */
+const I18N = {
+  pt: {
+    page_title:'Painel de Análise', page_subtitle:'PONTOS & SEGURANÇA DO TRABALHO',
+    back_to_board:'Voltar ao placar', back_to_ros:'Voltar ao ROS', print_report:'Imprimir relatório',
+    locked_title:'Página restrita à gestão',
+    locked_text:'Esse painel reúne indicadores internos da campanha e só fica disponível para quem acessa com autorização de administrador.',
+    section_points:'Campanha de Pontos', section_safety:'Segurança do Trabalho (ROS)',
+    tab_filial:'Filial', tab_matriz:'Matriz',
+    tier_iniciante:'Iniciante', tier_atuante:'Atuante', tier_referencia:'Referência', tier_campeao:'Campeão',
+    analise_resumo_geral:'Resumo geral', analise_collab_participating:'colaboradores participando',
+    analise_points_summed:'pontos somados na campanha',
+    ros_open_label:'ROS ABERTOS', ros_progress_label:'EM ANDAMENTO', ros_completed_label:'CONCLUÍDOS', ros_overdue_label:'ATRASADOS',
+    analise_who_not_scored:'Quem ainda não pontuou', analise_everyone_scored:'Todo mundo já pontuou 🎉',
+    analise_most_engaged:'Unidade mais engajada', analise_participation_label:'Participação',
+    analise_avg_per_person:'Média por pessoa', analise_unit_total:'Total da unidade',
+    analise_tie:'Empate técnico na participação das duas unidades.',
+    analise_tier_distribution:'Distribuição por faixa', analise_weekly_evolution:'Evolução semana a semana',
+    evo_empty:'Ainda não há histórico suficiente pra desenhar o gráfico.<br>Cada "Salvar e publicar" registra um ponto novo aqui — depois de algumas atualizações, a evolução aparece sozinha.',
+    evo_caption:'Cada ponto é uma atualização salva no painel de pontos — o eixo vertical é o total de pontos da unidade naquele momento.',
+    analise_avg_resolution:'Tempo médio de resolução', analise_avg_label:'média entre abrir e concluir',
+    analise_deadline_pct_label:'concluídos dentro do prazo', analise_days_unit:'dias',
+    analise_based_on:(n,plural)=>`Baseado em ${n} ROS já concluído${plural?'s':''} com histórico completo (abertura + conclusão registradas).`,
+    analise_monthly:'Evolução mensal', analise_empty_monthly:'Ainda não há histórico suficiente pra montar a evolução mensal.',
+    analise_participation:'Participação', analise_people_reported:'pessoas diferentes já reportaram um ROS',
+    analise_participation_note:'Mais pessoas reportando é sinal positivo — indica que a equipe se sente à vontade pra apontar desvios.',
+    status_aberto:'Aberto', status_concluido:'Concluído',
+    footer_credit_label:'Segurança do Trabalho:',
+    print_title:'Relatório de Análise — Nosso Time Bate um Bolão & ROS',
+    print_generated_on:(d)=>`Gerado em ${d}`,
+  },
+  en: {
+    page_title:'Analytics Panel', page_subtitle:'POINTS & WORKPLACE SAFETY',
+    back_to_board:'Back to dashboard', back_to_ros:'Back to reports', print_report:'Print report',
+    locked_title:'Restricted to management',
+    locked_text:'This panel gathers internal campaign metrics and is only available to those accessing with admin authorization.',
+    section_points:'Points Campaign', section_safety:'Workplace Safety (Reports)',
+    tab_filial:'Branch', tab_matriz:'HQ',
+    tier_iniciante:'Starter', tier_atuante:'Active', tier_referencia:'Reference', tier_campeao:'Champion',
+    analise_resumo_geral:'Overview', analise_collab_participating:'employees participating',
+    analise_points_summed:'points earned in the campaign',
+    ros_open_label:'OPEN REPORTS', ros_progress_label:'IN PROGRESS', ros_completed_label:'COMPLETED', ros_overdue_label:'OVERDUE',
+    analise_who_not_scored:'Who hasn\'t scored yet', analise_everyone_scored:'Everyone has scored 🎉',
+    analise_most_engaged:'Most engaged unit', analise_participation_label:'Participation',
+    analise_avg_per_person:'Average per person', analise_unit_total:'Unit total',
+    analise_tie:'Technical tie in participation between both units.',
+    analise_tier_distribution:'Tier distribution', analise_weekly_evolution:'Week-by-week evolution',
+    evo_empty:'Not enough history yet to draw the chart.<br>Each "Save and publish" registers a new point here — after a few updates, the trend appears on its own.',
+    evo_caption:'Each point is an update saved in the points panel — the vertical axis is the unit\'s total points at that moment.',
+    analise_avg_resolution:'Average resolution time', analise_avg_label:'average time to open and close',
+    analise_deadline_pct_label:'completed within deadline', analise_days_unit:'days',
+    analise_based_on:(n,plural)=>`Based on ${n} completed report${plural?'s':''} with full history (opening + completion recorded).`,
+    analise_monthly:'Monthly evolution', analise_empty_monthly:'Not enough history yet to build the monthly evolution.',
+    analise_participation:'Participation', analise_people_reported:'different people have reported at least one incident',
+    analise_participation_note:'More people reporting is a positive sign — it shows the team feels comfortable flagging deviations.',
+    status_aberto:'Open', status_concluido:'Completed',
+    footer_credit_label:'Occupational Safety:',
+    print_title:'Analytics Report — Our Team Scores Big & Reports',
+    print_generated_on:(d)=>`Generated on ${d}`,
+  },
+  de: {
+    page_title:'Analyse-Panel', page_subtitle:'PUNKTE & ARBEITSSICHERHEIT',
+    back_to_board:'Zurück zum Dashboard', back_to_ros:'Zurück zu Meldungen', print_report:'Bericht drucken',
+    locked_title:'Nur für das Management',
+    locked_text:'Dieses Panel bündelt interne Kampagnenkennzahlen und ist nur mit Admin-Berechtigung zugänglich.',
+    section_points:'Punktekampagne', section_safety:'Arbeitssicherheit (Meldungen)',
+    tab_filial:'Zweigstelle', tab_matriz:'Hauptsitz',
+    tier_iniciante:'Einsteiger', tier_atuante:'Aktiv', tier_referencia:'Referenz', tier_campeao:'Champion',
+    analise_resumo_geral:'Übersicht', analise_collab_participating:'teilnehmende Mitarbeiter',
+    analise_points_summed:'in der Kampagne gesammelte Punkte',
+    ros_open_label:'OFFENE MELDUNGEN', ros_progress_label:'IN BEARBEITUNG', ros_completed_label:'ABGESCHLOSSEN', ros_overdue_label:'ÜBERFÄLLIG',
+    analise_who_not_scored:'Wer noch nicht gepunktet hat', analise_everyone_scored:'Alle haben schon gepunktet 🎉',
+    analise_most_engaged:'Engagierteste Einheit', analise_participation_label:'Beteiligung',
+    analise_avg_per_person:'Durchschnitt pro Person', analise_unit_total:'Gesamt der Einheit',
+    analise_tie:'Technisches Unentschieden bei der Beteiligung beider Einheiten.',
+    analise_tier_distribution:'Verteilung nach Stufe', analise_weekly_evolution:'Wöchentliche Entwicklung',
+    evo_empty:'Noch nicht genug Verlauf, um das Diagramm zu zeichnen.<br>Jedes "Speichern und veröffentlichen" registriert hier einen neuen Punkt — nach ein paar Aktualisierungen erscheint der Trend von selbst.',
+    evo_caption:'Jeder Punkt ist eine im Punkte-Panel gespeicherte Aktualisierung — die vertikale Achse zeigt die Gesamtpunktzahl der Einheit zu diesem Zeitpunkt.',
+    analise_avg_resolution:'Durchschnittliche Lösungszeit', analise_avg_label:'durchschnittliche Zeit von Eröffnung bis Abschluss',
+    analise_deadline_pct_label:'innerhalb der Frist abgeschlossen', analise_days_unit:'Tage',
+    analise_based_on:(n,plural)=>`Basierend auf ${n} abgeschlossene${plural?'n':'r'} Meldung${plural?'en':''} mit vollständigem Verlauf (Eröffnung + Abschluss erfasst).`,
+    analise_monthly:'Monatliche Entwicklung', analise_empty_monthly:'Noch nicht genug Verlauf, um die monatliche Entwicklung darzustellen.',
+    analise_participation:'Beteiligung', analise_people_reported:'verschiedene Personen haben mindestens eine Meldung erstattet',
+    analise_participation_note:'Mehr Meldungen von mehr Personen sind ein positives Zeichen — es zeigt, dass sich das Team wohlfühlt, Abweichungen zu melden.',
+    status_aberto:'Offen', status_concluido:'Abgeschlossen',
+    footer_credit_label:'Arbeitssicherheit:',
+    print_title:'Analysebericht — Unser Team punktet groß & Meldungen',
+    print_generated_on:(d)=>`Erstellt am ${d}`,
+  }
+};
+let currentLang = localStorage.getItem('campanhaLang') || 'pt';
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.pt && I18N.pt[key]) || key; }
+function tf(key, ...args){
+  const fn = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.pt && I18N.pt[key]);
+  return typeof fn === 'function' ? fn(...args) : (fn || key);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.documentElement.lang = currentLang === 'pt' ? 'pt-BR' : currentLang;
+}
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('campanhaLang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  applyI18n();
+  if(fullData) renderAll();
+}
+document.querySelectorAll('.lang-btn').forEach(btn => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
+document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+applyI18n();
+
+if(!ADMIN_MODE){
+  document.getElementById('locked').style.display = 'block';
+} else {
+  document.getElementById('app').style.display = 'block';
+}
+
+function escapeHtml(str){
+  return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------------- Cache local — mostra a última análise vista, atualiza por trás ---------------- */
+const CACHE_KEY_ANALISE = 'analiseCacheV1';
+function loadCachedAnalise(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY_ANALISE);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(!parsed || !parsed.savedAt || (Date.now() - parsed.savedAt) > 24*60*60*1000) return null;
+    return parsed;
+  }catch(e){ return null; }
+}
+function saveCachedAnalise(){
+  try{
+    localStorage.setItem(CACHE_KEY_ANALISE, JSON.stringify({ ...fullData, savedAt: Date.now() }));
+  }catch(e){ /* localStorage indisponível — sem problema, só não cacheia */ }
+}
+
+let fullData = null;
+
+async function fetchFullData(){
+  try{
+    const res = await fetch(API_URL + '?tipo=full', { method:'GET' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    fullData = {
+      filial: Array.isArray(json.filial) ? json.filial : [],
+      matriz: Array.isArray(json.matriz) ? json.matriz : [],
+      historico: Array.isArray(json.historico) ? json.historico : [],
+      ros: Array.isArray(json.ros) ? json.ros : [],
+      historicoRos: Array.isArray(json.historicoRos) ? json.historicoRos : [],
+    };
+    renderAll();
+    saveCachedAnalise();
+  }catch(e){
+    console.error('Não foi possível carregar os dados:', e);
+  }
+}
+
+/* ---------------- Auxiliares (pontos) ---------------- */
+const TIERS = [
+  { min: 300, cls: 'tier-4', key: 'tier_campeao' },
+  { min: 150, cls: 'tier-3', key: 'tier_referencia' },
+  { min: 50,  cls: 'tier-2', key: 'tier_atuante' },
+  { min: 0,   cls: 'tier-1', key: 'tier_iniciante' },
+];
+const TIER_BAR_COLORS = { 'tier-1':'#6BD0F7', 'tier-2':'#009FE3', 'tier-3':'#4C8CA3', 'tier-4':'#F4BE2C' };
+
+function unitStatsAdmin(list){
+  const total = list.length;
+  const part = list.filter(p => (p.points||0) > 0).length;
+  const soma = list.reduce((s,p) => s + (p.points||0), 0);
+  return { total, part, soma, pct: total ? Math.round((part/total)*100) : 0, media: total ? Math.round(soma/total) : 0 };
+}
+
+function statusNorm(status){ return String(status || '').trim().toLowerCase(); }
+function isConcluidoAdmin(status){
+  const s = statusNorm(status);
+  return s === 'concluído' || s === 'concluido' || s === 'fechado';
+}
+function parsePrazoAdmin(prazo){
+  if(!prazo) return null;
+  const br = String(prazo).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(br){
+    const [, d, m, y] = br;
+    const year = y.length === 2 ? '20' + y : y;
+    const dt = new Date(Number(year), Number(m) - 1, Number(d));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  const generic = new Date(prazo);
+  return isNaN(generic.getTime()) ? null : generic;
+}
+
+function renderEvolutionChart(historico){
+  const toPoint = h => ({ t: new Date(h.timestamp).getTime(), v: Number(h.totalPontos) || 0 });
+  const filialSeries = (historico || []).filter(h => String(h.unit).toLowerCase() === 'filial')
+    .map(toPoint).filter(p => !isNaN(p.t)).sort((a,b) => a.t - b.t);
+  const matrizSeries = (historico || []).filter(h => String(h.unit).toLowerCase() === 'matriz')
+    .map(toPoint).filter(p => !isNaN(p.t)).sort((a,b) => a.t - b.t);
+
+  const allPoints = [...filialSeries, ...matrizSeries];
+  if(allPoints.length < 2) return `<div class="evo-empty">${t('evo_empty')}</div>`;
+
+  const minT = Math.min(...allPoints.map(p => p.t));
+  const maxT = Math.max(...allPoints.map(p => p.t));
+  const maxV = Math.max(1, ...allPoints.map(p => p.v));
+
+  const W = 560, H = 200, padL = 32, padR = 10, padT = 14, padB = 24;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const xOf = tt => (maxT === minT ? padL + plotW/2 : padL + ((tt - minT)/(maxT - minT)) * plotW);
+  const yOf = v => padT + plotH - (v / maxV) * plotH;
+  const pathOf = series => series.length === 0 ? '' : series.map((p,i) => (i===0?'M':'L') + xOf(p.t).toFixed(1) + ' ' + yOf(p.v).toFixed(1)).join(' ');
+  const dotsOf = (series, color) => series.map(p => `<circle cx="${xOf(p.t).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3.3" fill="${color}"></circle>`).join('');
+  const dateFmt = tt => new Date(tt).toLocaleDateString(currentLang === 'pt' ? 'pt-BR' : currentLang, { day:'2-digit', month:'2-digit' });
+
+  return `
+    <div style="display:flex; gap:16px; font-size:11.5px; color:var(--muted); margin-bottom:6px;">
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#009FE3;margin-right:5px;"></span>${t('tab_filial')}</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#F4BE2C;margin-right:5px;"></span>${t('tab_matriz')}</span>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
+      <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
+      <text x="${padL-6}" y="${padT+4}" text-anchor="end" font-size="9" fill="#7FAFC2">${maxV}</text>
+      <text x="${padL-6}" y="${padT+plotH+3}" text-anchor="end" font-size="9" fill="#7FAFC2">0</text>
+      ${pathOf(filialSeries) ? `<path d="${pathOf(filialSeries)}" fill="none" stroke="#009FE3" stroke-width="2"></path>` : ''}
+      ${pathOf(matrizSeries) ? `<path d="${pathOf(matrizSeries)}" fill="none" stroke="#F4BE2C" stroke-width="2"></path>` : ''}
+      ${dotsOf(filialSeries, '#009FE3')}
+      ${dotsOf(matrizSeries, '#F4BE2C')}
+      <text x="${padL}" y="${H-6}" font-size="9.5" fill="#7FAFC2">${dateFmt(minT)}</text>
+      <text x="${padL+plotW}" y="${H-6}" text-anchor="end" font-size="9.5" fill="#7FAFC2">${dateFmt(maxT)}</text>
+    </svg>
+    <div class="evo-caption">${t('evo_caption')}</div>
+  `;
+}
+
+function renderPointsAnalysis(){
+  const container = document.getElementById('pointsAnalysisContent');
+  const filial = fullData.filial || [];
+  const matriz = fullData.matriz || [];
+  const allPeople = [...filial, ...matriz];
+
+  const totalPeople = allPeople.length;
+  const participating = allPeople.filter(p => (p.points||0) > 0).length;
+  const totalPoints = allPeople.reduce((s,p) => s + (p.points||0), 0);
+
+  const rosList = fullData.ros || [];
+  const rosAbertos = rosList.filter(r => { const s = statusNorm(r.status); return s === 'aberto' || s === ''; }).length;
+  const rosAndamento = rosList.filter(r => statusNorm(r.status).includes('andamento')).length;
+  const rosConcluidos = rosList.filter(r => isConcluidoAdmin(r.status)).length;
+  const rosAtrasados = rosList.filter(r => {
+    if(isConcluidoAdmin(r.status)) return false;
+    const d = parsePrazoAdmin(r.prazo);
+    if(!d) return false;
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    return d.getTime() < hoje.getTime();
+  }).length;
+
+  const semPontosFilial = filial.filter(p => !(p.points > 0)).map(p => p.name);
+  const semPontosMatriz = matriz.filter(p => !(p.points > 0)).map(p => p.name);
+
+  const filialStats = unitStatsAdmin(filial);
+  const matrizStats = unitStatsAdmin(matriz);
+  const vencedora = filialStats.pct === matrizStats.pct ? null : (filialStats.pct > matrizStats.pct ? 'Filial' : 'Matriz');
+
+  const tierCounts = TIERS.map(tr => ({ ...tr, count: 0 }));
+  allPeople.forEach(p => {
+    const tier = TIERS.find(tr => (p.points||0) >= tr.min);
+    const found = tierCounts.find(tr => tr.key === tier.key);
+    if(found) found.count++;
+  });
+  const maxTierCount = Math.max(1, ...tierCounts.map(tr => tr.count));
+
+  const listHtml = names => names.length
+    ? `<ul>${names.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
+    : `<div class="noscore-empty">${t('analise_everyone_scored')}</div>`;
+
+  container.innerHTML = `
+    <div class="analysis-section">
+      <h3>${t('analise_resumo_geral')}</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-value">${participating}/${totalPeople}</div><div class="stat-label">${t('analise_collab_participating')}</div></div>
+        <div class="stat-card"><div class="stat-value">${totalPoints.toLocaleString('pt-BR')}</div><div class="stat-label">${t('analise_points_summed')}</div></div>
+      </div>
+      <div class="ros-mini-grid">
+        <div class="ros-mini-card"><div class="val" style="color:#FCA5A5;">${rosAbertos}</div><div class="lbl">${t('ros_open_label')}</div></div>
+        <div class="ros-mini-card"><div class="val" style="color:var(--gold);">${rosAndamento}</div><div class="lbl">${t('ros_progress_label')}</div></div>
+        <div class="ros-mini-card"><div class="val" style="color:#86EFAC;">${rosConcluidos}</div><div class="lbl">${t('ros_completed_label')}</div></div>
+        <div class="ros-mini-card"><div class="val" style="color:#EF4444;">${rosAtrasados}</div><div class="lbl">${t('ros_overdue_label')}</div></div>
+      </div>
+    </div>
+
+    <div class="analysis-grid2">
+      <div class="analysis-section">
+        <h3>${t('analise_who_not_scored')}</h3>
+        <div class="noscore-cols">
+          <div class="noscore-col">
+            <div class="col-title">${t('tab_filial')} (${semPontosFilial.length})</div>
+            ${listHtml(semPontosFilial)}
+          </div>
+          <div class="noscore-col">
+            <div class="col-title">${t('tab_matriz')} (${semPontosMatriz.length})</div>
+            ${listHtml(semPontosMatriz)}
+          </div>
+        </div>
+      </div>
+
+      <div class="analysis-section">
+        <h3>${t('analise_most_engaged')}</h3>
+        <div class="engage-compare">
+          <div class="engage-card ${vencedora==='Filial' ? 'winner' : ''}">
+            ${vencedora==='Filial' ? '<div class="engage-crown">🏆</div>' : ''}
+            <div class="engage-unit">${t('tab_filial')}</div>
+            <div class="engage-metric"><span>${t('analise_participation_label')}</span><b>${filialStats.pct}% (${filialStats.part}/${filialStats.total})</b></div>
+            <div class="engage-metric"><span>${t('analise_avg_per_person')}</span><b>${filialStats.media} pts</b></div>
+            <div class="engage-metric"><span>${t('analise_unit_total')}</span><b>${filialStats.soma.toLocaleString('pt-BR')} pts</b></div>
+          </div>
+          <div class="engage-card ${vencedora==='Matriz' ? 'winner' : ''}">
+            ${vencedora==='Matriz' ? '<div class="engage-crown">🏆</div>' : ''}
+            <div class="engage-unit">${t('tab_matriz')}</div>
+            <div class="engage-metric"><span>${t('analise_participation_label')}</span><b>${matrizStats.pct}% (${matrizStats.part}/${matrizStats.total})</b></div>
+            <div class="engage-metric"><span>${t('analise_avg_per_person')}</span><b>${matrizStats.media} pts</b></div>
+            <div class="engage-metric"><span>${t('analise_unit_total')}</span><b>${matrizStats.soma.toLocaleString('pt-BR')} pts</b></div>
+          </div>
+        </div>
+        ${vencedora ? '' : `<div class="noscore-empty" style="margin-top:8px;">${t('analise_tie')}</div>`}
+      </div>
+    </div>
+
+    <div class="analysis-grid2">
+      <div class="analysis-section">
+        <h3>${t('analise_tier_distribution')}</h3>
+        ${tierCounts.map(tc => `
+          <div class="tier-dist-row">
+            <span class="tier-dist-label">${t(tc.key)}</span>
+            <div class="tier-dist-bar-bg"><div class="tier-dist-bar-fill" style="width:${(tc.count/maxTierCount*100)}%; background:${TIER_BAR_COLORS[tc.cls]};"></div></div>
+            <span class="tier-dist-count">${tc.count}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="analysis-section">
+        <h3>${t('analise_weekly_evolution')}</h3>
+        ${renderEvolutionChart(fullData.historico)}
+      </div>
+    </div>
+  `;
+}
+
+/* ---------------- Auxiliares (ROS) ---------------- */
+function isConcluidoRos(status){ return isConcluidoAdmin(status); }
+
+function buildRosResolutionStats(){
+  const byKey = {};
+  (fullData.historicoRos || []).forEach(h => {
+    if(!byKey[h.key]) byKey[h.key] = [];
+    byKey[h.key].push(h);
+  });
+  const duracoes = [];
+  let dentroDoPrazo = 0, foraDoPrazo = 0;
+  Object.keys(byKey).forEach(key => {
+    const eventos = byKey[key].slice().sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const criacao = eventos.find(e => !e.statusAnterior);
+    const conclusao = eventos.find(e => isConcluidoRos(e.statusNovo));
+    if(!criacao || !conclusao) return;
+    const dCriacao = new Date(criacao.timestamp);
+    const dConclusao = new Date(conclusao.timestamp);
+    if(isNaN(dCriacao.getTime()) || isNaN(dConclusao.getTime()) || dConclusao < dCriacao) return;
+    duracoes.push(Math.round((dConclusao.getTime() - dCriacao.getTime()) / 86400000));
+    const item = (fullData.ros || []).find(r => String(r.id) === key);
+    if(item && item.prazo){
+      const prazoData = parsePrazoAdmin(item.prazo);
+      if(prazoData){
+        if(dConclusao.getTime() <= prazoData.getTime()) dentroDoPrazo++;
+        else foraDoPrazo++;
+      }
+    }
+  });
+  const mediaDias = duracoes.length ? Math.round(duracoes.reduce((s,d) => s+d, 0) / duracoes.length) : null;
+  const totalComPrazo = dentroDoPrazo + foraDoPrazo;
+  const pctDentroPrazo = totalComPrazo ? Math.round((dentroDoPrazo / totalComPrazo) * 100) : null;
+  return { mediaDias, pctDentroPrazo, totalResolvidos: duracoes.length };
+}
+
+function buildRosMonthlySeries(){
+  const map = {};
+  (fullData.historicoRos || []).forEach(h => {
+    const d = new Date(h.timestamp);
+    if(isNaN(d.getTime())) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if(!map[key]) map[key] = { abertos: 0, concluidos: 0 };
+    if(!h.statusAnterior) map[key].abertos++;
+    if(isConcluidoRos(h.statusNovo)) map[key].concluidos++;
+  });
+  return Object.keys(map).sort().map(k => ({ month: k, ...map[k] }));
+}
+function monthLabel(key){
+  const [y, m] = key.split('-');
+  const nomes = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return nomes[Number(m) - 1] + '/' + y.slice(2);
+}
+function renderRosMonthlyChart(series){
+  if(series.length === 0) return `<div class="analysis-empty">${t('analise_empty_monthly')}</div>`;
+  const maxV = Math.max(1, ...series.map(s => Math.max(s.abertos, s.concluidos)));
+  const W = 560, H = 190, padL = 28, padR = 10, padT = 14, padB = 30;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const groupW = plotW / series.length;
+  const barW = Math.min(20, groupW / 3);
+  const bars = series.map((s, i) => {
+    const gx = padL + i * groupW + groupW / 2;
+    const hAberto = (s.abertos / maxV) * plotH;
+    const hConcluido = (s.concluidos / maxV) * plotH;
+    const xAberto = gx - barW - 2, xConcluido = gx + 2;
+    const yAberto = padT + plotH - hAberto, yConcluido = padT + plotH - hConcluido;
+    return `
+      <rect x="${xAberto.toFixed(1)}" y="${yAberto.toFixed(1)}" width="${barW}" height="${hAberto.toFixed(1)}" fill="#EF4444" rx="2"></rect>
+      <rect x="${xConcluido.toFixed(1)}" y="${yConcluido.toFixed(1)}" width="${barW}" height="${hConcluido.toFixed(1)}" fill="#22C55E" rx="2"></rect>
+      <text x="${gx.toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="#7FAFC2">${monthLabel(s.month)}</text>
+    `;
+  }).join('');
+  return `
+    <div style="display:flex; gap:16px; font-size:11.5px; color:var(--muted); margin-bottom:8px; justify-content:center;">
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#EF4444;margin-right:5px;"></span>${t('status_aberto')}</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#22C55E;margin-right:5px;"></span>${t('status_concluido')}</span>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
+      <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="rgba(255,255,255,0.15)"></line>
+      ${bars}
+    </svg>
+  `;
+}
+function buildRosParticipationStats(){
+  const todos = new Set(), filial = new Set(), matriz = new Set();
+  (fullData.ros || []).forEach(item => {
+    const nome = (item.abertoPor || '').trim().toLowerCase();
+    if(!nome) return;
+    todos.add(nome);
+    const unidade = (item.unidade || '').trim().toLowerCase();
+    if(unidade === 'filial') filial.add(nome);
+    if(unidade === 'matriz') matriz.add(nome);
+  });
+  return { total: todos.size, filial: filial.size, matriz: matriz.size };
+}
+
+function renderRosAnalysis(){
+  const container = document.getElementById('rosAnalysisContent');
+  const resolucao = buildRosResolutionStats();
+  const mensal = buildRosMonthlySeries();
+  const participacao = buildRosParticipationStats();
+
+  container.innerHTML = `
+    <div class="analysis-grid2">
+      <div class="analysis-section">
+        <h3>${t('analise_avg_resolution')}</h3>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">${resolucao.mediaDias !== null ? resolucao.mediaDias + ' ' + t('analise_days_unit') : '—'}</div>
+            <div class="stat-label">${t('analise_avg_label')}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${resolucao.pctDentroPrazo !== null ? resolucao.pctDentroPrazo + '%' : '—'}</div>
+            <div class="stat-label">${t('analise_deadline_pct_label')}</div>
+          </div>
+        </div>
+        <div class="analysis-note">${tf('analise_based_on', resolucao.totalResolvidos, resolucao.totalResolvidos !== 1)}</div>
+      </div>
+
+      <div class="analysis-section">
+        <h3>${t('analise_participation')}</h3>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">${participacao.total}</div>
+            <div class="stat-label">${t('analise_people_reported')}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${participacao.filial} / ${participacao.matriz}</div>
+            <div class="stat-label">${t('tab_filial')} / ${t('tab_matriz')}</div>
+          </div>
+        </div>
+        <div class="analysis-note">${t('analise_participation_note')}</div>
+      </div>
+    </div>
+
+    <div class="analysis-section">
+      <h3>${t('analise_monthly')}</h3>
+      ${renderRosMonthlyChart(mensal)}
+    </div>
+  `;
+}
+
+function renderAll(){
+  if(!fullData) return;
+  renderPointsAnalysis();
+  renderRosAnalysis();
+}
+
+/* ---------------- Relatório de impressão ---------------- */
+function buildPrintReport(){
+  if(!fullData) return;
+  const area = document.getElementById('printReportArea');
+  const hoje = new Date().toLocaleDateString(t('locale_code') || (currentLang === 'pt' ? 'pt-BR' : currentLang), { day:'2-digit', month:'2-digit', year:'numeric' });
+  area.innerHTML = `
+    <div class="print-title">${t('print_title')}</div>
+    <div class="print-meta">${tf('print_generated_on', hoje)}</div>
+  ` + document.getElementById('pointsAnalysisContent').innerHTML + document.getElementById('rosAnalysisContent').innerHTML;
+}
+document.getElementById('printBtn').addEventListener('click', () => {
+  buildPrintReport();
+  setTimeout(() => window.print(), 80);
+});
+
+/* ---------------- Pausa as consultas quando a aba não está visível ---------------- */
+let analisePollIntervalId = null;
+function startAnalisePolling(){
+  if(!analisePollIntervalId) analisePollIntervalId = setInterval(fetchFullData, 60000);
+}
+function stopAnalisePolling(){
+  if(analisePollIntervalId){ clearInterval(analisePollIntervalId); analisePollIntervalId = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ stopAnalisePolling(); }
+  else { if(ADMIN_MODE) fetchFullData(); startAnalisePolling(); }
+});
+
+if(ADMIN_MODE){
+  const cached = loadCachedAnalise();
+  if(cached && (cached.filial || cached.matriz)){
+    fullData = cached;
+    renderAll();
+  }
+  fetchFullData();
+  startAnalisePolling();
+}
+</script>
+</body>
+</html>
