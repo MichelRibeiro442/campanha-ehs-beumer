@@ -340,6 +340,12 @@
     transition:color .2s ease, border-color .2s ease, transform .3s ease;
   }
   .gear:hover{color:var(--blue-light); border-color:var(--blue-light); transform:rotate(35deg);}
+  .admin-logout-link{
+    background:none; border:none; color:var(--muted); font-family:'Inter',sans-serif; font-size:11px;
+    letter-spacing:0.2px; cursor:pointer; text-decoration:underline; padding:0; opacity:0.75;
+    transition:opacity .2s ease, color .2s ease;
+  }
+  .admin-logout-link:hover{opacity:1; color:var(--blue-light);}
 
   /* ---------- Modal admin ---------- */
   .overlay{
@@ -591,6 +597,7 @@
         <path d="m9 12 2 2 4-4"></path>
       </svg>
       <span><span data-i18n="footer_credit_label">Segurança do Trabalho:</span> <b>Michel Ribeiro</b> · <b>Michelle Teixeira</b> · <b>Leonardo Queiroz</b></span>
+      <button type="button" class="admin-logout-link" id="adminLogoutBtn" style="display:none;" data-i18n="exit_admin_mode">Sair do modo admin</button>
       <div class="gear" id="gearBtn" data-i18n-title="admin_panel_title" title="Painel do administrador">⚙</div>
     </div>
     <div class="footer-flags">
@@ -684,7 +691,7 @@ const I18N = {
     sort_priority:'Ordenar: Prioridade', sort_recent:'Ordenar: Mais recentes',
     my_ros:'Meus ROS', view_cards:'Ver em cards', view_list:'Ver em lista',
     empty_default:'Nenhum ROS encontrado para esse filtro.', empty_filtered:'Nenhum ROS encontrado com esse filtro/busca.',
-    footer_credit_label:'Segurança do Trabalho:', admin_panel_title:'Painel do administrador',
+    footer_credit_label:'Segurança do Trabalho:', admin_panel_title:'Painel do administrador', exit_admin_mode:'Sair do modo admin',
     trend_modal_title:'Tendência de ROS', trend_modal_sub:'Abertos vs. concluídos ao longo do tempo.',
     field_descricao:'Descrição', field_aberto_por:'Aberto por', field_nivel_risco:'Nível de risco',
     field_local:'Local', field_data_abertura:'Data de abertura', field_plano_acao:'Plano de ação',
@@ -728,7 +735,7 @@ const I18N = {
     sort_priority:'Sort: Priority', sort_recent:'Sort: Most recent',
     my_ros:'My Reports', view_cards:'Card view', view_list:'List view',
     empty_default:'No reports found for this filter.', empty_filtered:'No reports found for this filter/search.',
-    footer_credit_label:'Occupational Safety:', admin_panel_title:'Admin panel',
+    footer_credit_label:'Occupational Safety:', admin_panel_title:'Admin panel', exit_admin_mode:'Exit admin mode',
     trend_modal_title:'Report Trend', trend_modal_sub:'Opened vs. completed over time.',
     field_descricao:'Description', field_aberto_por:'Reported by', field_nivel_risco:'Risk level',
     field_local:'Location', field_data_abertura:'Date opened', field_plano_acao:'Action plan',
@@ -772,7 +779,7 @@ const I18N = {
     sort_priority:'Sortieren: Priorität', sort_recent:'Sortieren: Neueste',
     my_ros:'Meine Meldungen', view_cards:'Kartenansicht', view_list:'Listenansicht',
     empty_default:'Keine Meldungen für diesen Filter gefunden.', empty_filtered:'Keine Meldungen für diesen Filter/Suche gefunden.',
-    footer_credit_label:'Arbeitssicherheit:', admin_panel_title:'Admin-Panel',
+    footer_credit_label:'Arbeitssicherheit:', admin_panel_title:'Admin-Panel', exit_admin_mode:'Admin-Modus verlassen',
     trend_modal_title:'Meldungstrend', trend_modal_sub:'Eröffnet vs. abgeschlossen im Zeitverlauf.',
     field_descricao:'Beschreibung', field_aberto_por:'Gemeldet von', field_nivel_risco:'Risikostufe',
     field_local:'Ort', field_data_abertura:'Eröffnungsdatum', field_plano_acao:'Maßnahmenplan',
@@ -839,12 +846,25 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
 applyI18n();
 
-const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
+// Modo administrador: ativa com ?admin=1 no link (uma vez só) e o navegador
+// "lembra" disso dali pra frente — não precisa mais do link especial toda vez.
+const ADMIN_PARAM = new URLSearchParams(window.location.search).get('admin') === '1';
+if(ADMIN_PARAM) localStorage.setItem('hseAdminMode', '1');
+const ADMIN_MODE = ADMIN_PARAM || localStorage.getItem('hseAdminMode') === '1';
 if(!ADMIN_MODE){
   const gearEl = document.getElementById('gearBtn');
   if(gearEl) gearEl.style.display = 'none';
   const printEl = document.getElementById('rosPrintBtn');
   if(printEl) printEl.style.display = 'none';
+} else {
+  const logoutEl = document.getElementById('adminLogoutBtn');
+  if(logoutEl){
+    logoutEl.style.display = '';
+    logoutEl.addEventListener('click', () => {
+      localStorage.removeItem('hseAdminMode');
+      window.location.href = window.location.pathname;
+    });
+  }
 }
 
 // Mesmo backend (Apps Script) já usado pelo placar de pontos.

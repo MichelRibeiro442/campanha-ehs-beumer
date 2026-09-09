@@ -86,6 +86,12 @@
   }
   .lang-btn:hover{opacity:0.85; transform:translateY(-1px);}
   .lang-btn.active{opacity:1; filter:none; border-color:var(--blue-light); box-shadow:0 0 0 1px rgba(107,208,247,0.3);}
+  .admin-logout-link{
+    background:none; border:none; color:var(--muted); font-family:'Inter',sans-serif; font-size:11px;
+    letter-spacing:0.2px; cursor:pointer; text-decoration:underline; padding:0; opacity:0.75;
+    transition:opacity .2s ease, color .2s ease;
+  }
+  .admin-logout-link:hover{opacity:1; color:var(--blue-light);}
   .back-btn{
     display:inline-flex; align-items:center; gap:7px; flex:none;
     padding:9px 16px; border-radius:999px;
@@ -204,6 +210,7 @@
       </div>
     </div>
     <div class="header-actions">
+      <button type="button" class="admin-logout-link" id="adminLogoutBtn" style="display:none;" data-i18n="exit_admin_mode">Sair do modo admin</button>
       <div class="lang-switch">
         <button type="button" class="lang-btn active" data-lang="pt" title="Português">🇧🇷</button>
         <button type="button" class="lang-btn" data-lang="en" title="English">🇺🇸</button>
@@ -305,14 +312,18 @@
 </div>
 
 <script>
-const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
+// Modo administrador: ativa com ?admin=1 no link (uma vez só) e o navegador
+// "lembra" disso dali pra frente — não precisa mais do link especial toda vez.
+const ADMIN_PARAM = new URLSearchParams(window.location.search).get('admin') === '1';
+if(ADMIN_PARAM) localStorage.setItem('hseAdminMode', '1');
+const ADMIN_MODE = ADMIN_PARAM || localStorage.getItem('hseAdminMode') === '1';
 const API_URL = 'https://script.google.com/macros/s/AKfycby7orhf31seXoADvA2JWeVBRhwsZzbsaaMZ-orXeCgE0r5hAaEB2fsvB0sOn10BVgsveA/exec';
 
 /* ---------------- Idioma (PT / EN / DE) ---------------- */
 const I18N = {
   pt: {
     page_title:'Painel de Análise', page_subtitle:'PONTOS & SEGURANÇA DO TRABALHO',
-    back_to_board:'Voltar ao placar', back_to_ros:'Voltar ao ROS', print_report:'Imprimir relatório',
+    back_to_board:'Voltar ao placar', back_to_ros:'Voltar ao ROS', print_report:'Imprimir relatório', exit_admin_mode:'Sair do modo admin',
     locked_title:'Página restrita à gestão',
     locked_text:'Esse painel reúne indicadores internos da campanha e só fica disponível para quem acessa com autorização de administrador.',
     section_points:'Campanha de Pontos', section_safety:'Segurança do Trabalho (ROS)',
@@ -341,7 +352,7 @@ const I18N = {
   },
   en: {
     page_title:'Analytics Panel', page_subtitle:'POINTS & WORKPLACE SAFETY',
-    back_to_board:'Back to dashboard', back_to_ros:'Back to reports', print_report:'Print report',
+    back_to_board:'Back to dashboard', back_to_ros:'Back to reports', print_report:'Print report', exit_admin_mode:'Exit admin mode',
     locked_title:'Restricted to management',
     locked_text:'This panel gathers internal campaign metrics and is only available to those accessing with admin authorization.',
     section_points:'Points Campaign', section_safety:'Workplace Safety (Reports)',
@@ -370,7 +381,7 @@ const I18N = {
   },
   de: {
     page_title:'Analyse-Panel', page_subtitle:'PUNKTE & ARBEITSSICHERHEIT',
-    back_to_board:'Zurück zum Dashboard', back_to_ros:'Zurück zu Meldungen', print_report:'Bericht drucken',
+    back_to_board:'Zurück zum Dashboard', back_to_ros:'Zurück zu Meldungen', print_report:'Bericht drucken', exit_admin_mode:'Admin-Modus verlassen',
     locked_title:'Nur für das Management',
     locked_text:'Dieses Panel bündelt interne Kampagnenkennzahlen und ist nur mit Admin-Berechtigung zugänglich.',
     section_points:'Punktekampagne', section_safety:'Arbeitssicherheit (Meldungen)',
@@ -423,6 +434,14 @@ if(!ADMIN_MODE){
   document.getElementById('locked').style.display = 'block';
 } else {
   document.getElementById('app').style.display = 'block';
+  const logoutEl = document.getElementById('adminLogoutBtn');
+  if(logoutEl){
+    logoutEl.style.display = '';
+    logoutEl.addEventListener('click', () => {
+      localStorage.removeItem('hseAdminMode');
+      window.location.href = './index.html';
+    });
+  }
 }
 
 function escapeHtml(str){

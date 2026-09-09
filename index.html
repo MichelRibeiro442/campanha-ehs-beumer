@@ -497,6 +497,13 @@
     transition:color .2s ease, border-color .2s ease, transform .3s ease;
   }
   .gear:hover{color:var(--blue-light); border-color:var(--blue-light); transform:rotate(35deg);}
+  .footer-top-actions{display:flex; align-items:center; gap:10px;}
+  .admin-logout-link{
+    background:none; border:none; color:var(--muted); font-family:'Inter',sans-serif; font-size:11px;
+    letter-spacing:0.2px; cursor:pointer; text-decoration:underline; padding:0; opacity:0.75;
+    transition:opacity .2s ease, color .2s ease;
+  }
+  .admin-logout-link:hover{opacity:1; color:var(--blue-light);}
 
   /* ---------- Aba Análise (dentro do painel admin) ---------- */
   .admin-tabs{display:flex; gap:8px; margin-bottom:16px;}
@@ -1015,7 +1022,10 @@
         <span class="live-label" id="liveLabel">AO VIVO</span>
         <span id="updatedAt" data-i18n="loading_data">Carregando dados...</span>
       </div>
-      <div class="gear" id="gearBtn" data-i18n-title="admin_panel_gear_title" title="Painel do administrador">⚙</div>
+      <div class="footer-top-actions">
+        <button type="button" class="admin-logout-link" id="adminLogoutBtn" style="display:none;" data-i18n="exit_admin_mode">Sair do modo admin</button>
+        <div class="gear" id="gearBtn" data-i18n-title="admin_panel_gear_title" title="Painel do administrador">⚙</div>
+      </div>
     </div>
     <div class="footer-credit">
       <div class="footer-credit-top">
@@ -1153,7 +1163,7 @@ const I18N = {
     days_since_prefix:'Estamos há', days_since_suffix:'dias sem acidentes de trabalho',
     tier_iniciante:'Iniciante', tier_atuante:'Atuante', tier_referencia:'Referência', tier_campeao:'Campeão',
     footer_credit_label:'Segurança do Trabalho:', live_indicator:'AO VIVO', reconnecting:'RECONECTANDO',
-    admin_panel_title:'Painel do administrador', view_full_analysis:'Ver análise completa',
+    admin_panel_title:'Painel do administrador', view_full_analysis:'Ver análise completa', exit_admin_mode:'Sair do modo admin',
     modal_save:'Salvar e publicar', modal_close:'Fechar',
     points_admin_sub:'Lance aqui somente o total de pontos de cada colaborador. O critério que originou os pontos não é exibido no placar público.',
     add_collaborator:'+ adicionar colaborador', bulk_toggle:'📋 colar em lote (nome + pontos)',
@@ -1213,7 +1223,7 @@ const I18N = {
     days_since_prefix:'We are at', days_since_suffix:'days without workplace accidents',
     tier_iniciante:'Starter', tier_atuante:'Active', tier_referencia:'Reference', tier_campeao:'Champion',
     footer_credit_label:'Occupational Safety:', live_indicator:'LIVE', reconnecting:'RECONNECTING',
-    admin_panel_title:'Admin panel', view_full_analysis:'View full analytics',
+    admin_panel_title:'Admin panel', view_full_analysis:'View full analytics', exit_admin_mode:'Exit admin mode',
     modal_save:'Save and publish', modal_close:'Close',
     points_admin_sub:'Enter only the total points for each employee here. The criteria behind the points is not shown on the public board.',
     add_collaborator:'+ add employee', bulk_toggle:'📋 paste in bulk (name + points)',
@@ -1273,7 +1283,7 @@ const I18N = {
     days_since_prefix:'Wir sind bei', days_since_suffix:'Tagen ohne Arbeitsunfälle',
     tier_iniciante:'Einsteiger', tier_atuante:'Aktiv', tier_referencia:'Referenz', tier_campeao:'Champion',
     footer_credit_label:'Arbeitssicherheit:', live_indicator:'LIVE', reconnecting:'VERBINDE NEU',
-    admin_panel_title:'Admin-Panel', view_full_analysis:'Vollständige Analyse ansehen',
+    admin_panel_title:'Admin-Panel', view_full_analysis:'Vollständige Analyse ansehen', exit_admin_mode:'Admin-Modus verlassen',
     modal_save:'Speichern und veröffentlichen', modal_close:'Schließen',
     points_admin_sub:'Geben Sie hier nur die Gesamtpunktzahl jedes Mitarbeiters ein. Das Kriterium hinter den Punkten wird im öffentlichen Board nicht angezeigt.',
     add_collaborator:'+ Mitarbeiter hinzufügen', bulk_toggle:'📋 Massenimport (Name + Punkte)',
@@ -1365,12 +1375,25 @@ applyI18n();
 
 // Modo administrador: só fica visível quando o link é aberto com ?admin=1 no final.
 // Como agora é o MESMO artefato para os dois casos, os dados ficam sempre sincronizados.
-const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
+// Modo administrador: ativa com ?admin=1 no link (uma vez só) e o navegador
+// "lembra" disso dali pra frente — não precisa mais do link especial toda vez.
+const ADMIN_PARAM = new URLSearchParams(window.location.search).get('admin') === '1';
+if(ADMIN_PARAM) localStorage.setItem('hseAdminMode', '1');
+const ADMIN_MODE = ADMIN_PARAM || localStorage.getItem('hseAdminMode') === '1';
 if(!ADMIN_MODE){
   const gearEl = document.getElementById('gearBtn');
   if(gearEl) gearEl.style.display = 'none';
   const printEl = document.getElementById('printReportBtn');
   if(printEl) printEl.style.display = 'none';
+} else {
+  const logoutEl = document.getElementById('adminLogoutBtn');
+  if(logoutEl){
+    logoutEl.style.display = '';
+    logoutEl.addEventListener('click', () => {
+      localStorage.removeItem('hseAdminMode');
+      window.location.href = window.location.pathname;
+    });
+  }
 }
 
 // Fonte dos dados: Google Apps Script publicado a partir da Planilha Google.
